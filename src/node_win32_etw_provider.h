@@ -3,6 +3,7 @@
 
 #include "node_dtrace.h"
 #include <evntprov.h>
+#include "node_ni.h"
 
 namespace node {
 
@@ -47,12 +48,12 @@ INLINE void NODE_NET_SERVER_CONNECTION(node_dtrace_connection_t* conn,
   const char *remote, int port, int fd);
 INLINE void NODE_NET_STREAM_END(node_dtrace_connection_t* conn,
   const char *remote, int port, int fd);
-INLINE void NODE_GC_START(v8::GCType type,
-                          v8::GCCallbackFlags flags,
-                          v8::Isolate* isolate);
-INLINE void NODE_GC_DONE(v8::GCType type,
-                         v8::GCCallbackFlags flags,
-                         v8::Isolate* isolate);
+INLINE void NODE_GC_START(GCType type,
+                          GCCallbackFlags flags,
+                          Isolate* isolate);
+INLINE void NODE_GC_DONE(GCType type,
+                         GCCallbackFlags flags,
+                         Isolate* isolate);
 INLINE void NODE_V8SYMBOL_REMOVE(const void* addr1, const void* addr2);
 INLINE void NODE_V8SYMBOL_MOVE(const void* addr1, const void* addr2);
 INLINE void NODE_V8SYMBOL_RESET();

@@ -1,6 +1,7 @@
 #include "env.h"
 #include "env-inl.h"
-#include "v8.h"
+
+#include "node_ni.h"
 
 #if defined(_MSC_VER)
 #define getpid GetCurrentProcessId
@@ -12,20 +13,14 @@
 
 namespace node {
 
-using v8::HandleScope;
-using v8::Local;
-using v8::Message;
-using v8::StackFrame;
-using v8::StackTrace;
-using v8::TryCatch;
-using v8::Value;
+using namespace node::ni;
 
 void Environment::PrintSyncTrace() const {
   if (!trace_sync_io_)
     return;
 
   HandleScope handle_scope(isolate());
-  Local<v8::StackTrace> stack =
+  Local<StackTrace> stack =
       StackTrace::CurrentStackTrace(isolate(), 10, StackTrace::kDetailed);
 
   fprintf(stderr, "(node:%d) WARNING: Detected use of sync API\n", getpid());

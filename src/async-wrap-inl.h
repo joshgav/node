@@ -1,6 +1,8 @@
 #ifndef SRC_ASYNC_WRAP_INL_H_
 #define SRC_ASYNC_WRAP_INL_H_
 
+#include "node_ni.h"
+
 #include "async-wrap.h"
 #include "base-object.h"
 #include "base-object-inl.h"
@@ -9,12 +11,13 @@
 #include "node_internals.h"
 #include "util.h"
 #include "util-inl.h"
-#include "v8.h"
 
 namespace node {
 
+using namespace node::ni;
+
 inline AsyncWrap::AsyncWrap(Environment* env,
-                            v8::Local<v8::Object> object,
+                            Local<Object> object,
                             ProviderType provider,
                             AsyncWrap* parent)
     : BaseObject(env, object), bits_(static_cast<uint32_t>(provider) << 1),
@@ -25,7 +28,7 @@ inline AsyncWrap::AsyncWrap(Environment* env,
   // Shift provider value over to prevent id collision.
   persistent().SetWrapperClassId(NODE_ASYNC_ID_OFFSET + provider);
 
-  v8::Local<v8::Function> init_fn = env->async_hooks_init_function();
+  Local<Function> init_fn = env->async_hooks_init_function();
 
   // No init callback exists, no reason to go on.
   if (init_fn.IsEmpty())
@@ -37,23 +40,23 @@ inline AsyncWrap::AsyncWrap(Environment* env,
       (parent == nullptr || !parent->ran_init_callback()))
     return;
 
-  v8::HandleScope scope(env->isolate());
+  HandleScope scope(env->isolate());
 
-  v8::Local<v8::Value> argv[] = {
-    v8::Integer::New(env->isolate(), get_uid()),
-    v8::Int32::New(env->isolate(), provider),
+  Local<Value> argv[] = {
+    Integer::New(env->isolate(), get_uid()),
+    Int32::New(env->isolate(), provider),
     Null(env->isolate()),
     Null(env->isolate())
   };
 
   if (parent != nullptr) {
-    argv[2] = v8::Integer::New(env->isolate(), parent->get_uid());
+    argv[2] = Integer::New(env->isolate(), parent->get_uid());
     argv[3] = parent->object();
   }
 
-  v8::TryCatch try_catch(env->isolate());
+  TryCatch try_catch(env->isolate());
 
-  v8::MaybeLocal<v8::Value> ret =
+  MaybeLocal<Value> ret =
       init_fn->Call(env->context(), object, arraysize(argv), argv);
 
   if (ret.IsEmpty()) {
@@ -69,13 +72,13 @@ inline AsyncWrap::~AsyncWrap() {
   if (!ran_init_callback())
     return;
 
-  v8::Local<v8::Function> fn = env()->async_hooks_destroy_function();
+  Local<Function> fn = env()->async_hooks_destroy_function();
   if (!fn.IsEmpty()) {
-    v8::HandleScope scope(env()->isolate());
-    v8::Local<v8::Value> uid = v8::Integer::New(env()->isolate(), get_uid());
-    v8::TryCatch try_catch(env()->isolate());
-    v8::MaybeLocal<v8::Value> ret =
-        fn->Call(env()->context(), v8::Null(env()->isolate()), 1, &uid);
+    HandleScope scope(env()->isolate());
+    Local<Value> uid = Integer::New(env()->isolate(), get_uid());
+    TryCatch try_catch(env()->isolate());
+    MaybeLocal<Value> ret =
+        fn->Call(env()->context(), Null(env()->isolate()), 1, &uid);
     if (ret.IsEmpty()) {
       ClearFatalExceptionHandlers(env());
       FatalException(env()->isolate(), try_catch);
@@ -99,23 +102,23 @@ inline int64_t AsyncWrap::get_uid() const {
 }
 
 
-inline v8::Local<v8::Value> AsyncWrap::MakeCallback(
-    const v8::Local<v8::String> symbol,
+inline Local<Value> AsyncWrap::MakeCallback(
+    const Local<String> symbol,
     int argc,
-    v8::Local<v8::Value>* argv) {
-  v8::Local<v8::Value> cb_v = object()->Get(symbol);
+    Local<Value>* argv) {
+  Local<Value> cb_v = object()->Get(symbol);
   CHECK(cb_v->IsFunction());
-  return MakeCallback(cb_v.As<v8::Function>(), argc, argv);
+  return MakeCallback(cb_v.As<Function>(), argc, argv);
 }
 
 
-inline v8::Local<v8::Value> AsyncWrap::MakeCallback(
+inline Local<Value> AsyncWrap::MakeCallback(
     uint32_t index,
     int argc,
-    v8::Local<v8::Value>* argv) {
-  v8::Local<v8::Value> cb_v = object()->Get(index);
+    Local<Value>* argv) {
+  Local<Value> cb_v = object()->Get(index);
   CHECK(cb_v->IsFunction());
-  return MakeCallback(cb_v.As<v8::Function>(), argc, argv);
+  return MakeCallback(cb_v.As<Function>(), argc, argv);
 }
 
 }  // namespace node

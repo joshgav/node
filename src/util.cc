@@ -2,13 +2,11 @@
 #include "string_bytes.h"
 #include "node_buffer.h"
 #include <stdio.h>
+#include "node_ni.h"
 
 namespace node {
 
-using v8::Isolate;
-using v8::String;
-using v8::Local;
-using v8::Value;
+using namespace node::ni;
 
 static int MakeUtf8String(Isolate* isolate,
                           Local<Value> value,

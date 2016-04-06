@@ -4,6 +4,8 @@
 #include "node_internals.h"
 #include "node_stat_watcher.h"
 
+#include "node_ni.h"
+
 #include "env.h"
 #include "env-inl.h"
 #include "req-wrap.h"
@@ -26,20 +28,7 @@
 
 namespace node {
 
-using v8::Array;
-using v8::Context;
-using v8::EscapableHandleScope;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Isolate;
-using v8::Local;
-using v8::Number;
-using v8::Object;
-using v8::String;
-using v8::Value;
+using namespace node::ni;
 
 #ifndef MIN
 # define MIN(a, b) ((a) < (b) ? (a) : (b))

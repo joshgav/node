@@ -2,11 +2,12 @@
 #define SRC_ASYNC_WRAP_H_
 
 #include "base-object.h"
-#include "v8.h"
-
+#include "node_ni.h"
 #include <stdint.h>
 
 namespace node {
+
+using namespace node::ni;
 
 #define NODE_ASYNC_ID_OFFSET 0xA1C
 
@@ -48,7 +49,7 @@ class AsyncWrap : public BaseObject {
   };
 
   inline AsyncWrap(Environment* env,
-                   v8::Local<v8::Object> object,
+                   Local<Object> object,
                    ProviderType provider,
                    AsyncWrap* parent = nullptr);
 
@@ -59,15 +60,15 @@ class AsyncWrap : public BaseObject {
   inline int64_t get_uid() const;
 
   // Only call these within a valid HandleScope.
-  v8::Local<v8::Value> MakeCallback(const v8::Local<v8::Function> cb,
+  Local<Value> MakeCallback(const Local<Function> cb,
                                      int argc,
-                                     v8::Local<v8::Value>* argv);
-  inline v8::Local<v8::Value> MakeCallback(const v8::Local<v8::String> symbol,
+                                     Local<Value>* argv);
+  inline Local<Value> MakeCallback(const Local<String> symbol,
                                             int argc,
-                                            v8::Local<v8::Value>* argv);
-  inline v8::Local<v8::Value> MakeCallback(uint32_t index,
+                                            Local<Value>* argv);
+  inline Local<Value> MakeCallback(uint32_t index,
                                             int argc,
-                                            v8::Local<v8::Value>* argv);
+                                            Local<Value>* argv);
 
   virtual size_t self_size() const = 0;
 

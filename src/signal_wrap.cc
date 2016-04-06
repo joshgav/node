@@ -5,19 +5,11 @@
 #include "handle_wrap.h"
 #include "util.h"
 #include "util-inl.h"
-#include "v8.h"
+#include "node_ni.h"
 
 namespace node {
 
-using v8::Context;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Local;
-using v8::Object;
-using v8::Value;
+using namespace node::ni;
 
 class SignalWrap : public HandleWrap {
  public:

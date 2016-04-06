@@ -6,19 +6,12 @@
 #include "node_buffer.h"
 #include "stream_base.h"
 #include "stream_base-inl.h"
-#include "v8.h"
+
+#include "node_ni.h"
 
 namespace node {
 
-using v8::Array;
-using v8::Context;
-using v8::External;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Local;
-using v8::Object;
-using v8::Value;
+using namespace node::ni;
 
 
 JSStream::JSStream(Environment* env, Local<Object> obj, AsyncWrap* parent)
@@ -44,10 +37,10 @@ AsyncWrap* JSStream::GetAsyncWrap() {
 
 
 bool JSStream::IsAlive() {
-  v8::Local<v8::Value> fn = object()->Get(env()->isalive_string());
+  Local<Value> fn = object()->Get(env()->isalive_string());
   if (!fn->IsFunction())
     return false;
-  return MakeCallback(fn.As<v8::Function>(), 0, nullptr)->IsTrue();
+  return MakeCallback(fn.As<Function>(), 0, nullptr)->IsTrue();
 }
 
 

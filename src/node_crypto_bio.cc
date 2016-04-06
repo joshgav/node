@@ -2,10 +2,14 @@
 #include "openssl/bio.h"
 #include "util.h"
 #include "util-inl.h"
+#include "node_ni.h"
+
 #include <limits.h>
 #include <string.h>
 
 namespace node {
+
+using namespace node::ni;
 
 const BIO_METHOD NodeBIO::method = {
   BIO_TYPE_MEM,

@@ -14,6 +14,7 @@
 #include "udp_wrap.h"
 #include "util.h"
 #include "util-inl.h"
+#include "node_ni.h"
 
 #include <stdlib.h>  // abort()
 #include <string.h>  // memcpy()
@@ -22,22 +23,7 @@
 
 namespace node {
 
-using v8::Array;
-using v8::Context;
-using v8::EscapableHandleScope;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Local;
-using v8::Number;
-using v8::Object;
-using v8::PropertyCallbackInfo;
-using v8::String;
-using v8::True;
-using v8::Undefined;
-using v8::Value;
-
+using namespace node::ni;
 
 void StreamWrap::Initialize(Local<Object> target,
                             Local<Value> unused,
@@ -80,7 +66,7 @@ StreamWrap::StreamWrap(Environment* env,
 
 
 void StreamWrap::AddMethods(Environment* env,
-                            v8::Local<v8::FunctionTemplate> target,
+                            Local<FunctionTemplate> target,
                             int flags) {
   env->SetProtoMethod(target, "setBlocking", SetBlocking);
   StreamBase::AddMethods<StreamWrap>(env, target, flags);

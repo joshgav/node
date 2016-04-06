@@ -8,19 +8,13 @@
 #include "handle_wrap.h"
 #include "string_bytes.h"
 
+#include "node_ni.h"
+
 #include <stdlib.h>
 
 namespace node {
 
-using v8::Context;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Local;
-using v8::Object;
-using v8::String;
-using v8::Value;
+using namespace node::ni;
 
 class FSEventWrap: public HandleWrap {
  public:

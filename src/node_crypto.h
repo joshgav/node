@@ -7,13 +7,13 @@
 
 #include "node_buffer.h"
 
+#include "node_ni.h"
+
 #include "env.h"
 #include "async-wrap.h"
 #include "async-wrap-inl.h"
 #include "base-object.h"
 #include "base-object-inl.h"
-
-#include "v8.h"
 
 #include <openssl/ssl.h>
 #include <openssl/ec.h>
@@ -38,6 +38,8 @@
 
 namespace node {
 namespace crypto {
+
+using namespace node::ni;
 
 // Forcibly clear OpenSSL's error stack on return. This stops stale errors
 // from popping up later in the lifecycle of crypto operations where they
@@ -72,7 +74,7 @@ class SecureContext : public BaseObject {
     FreeCTXMem();
   }
 
-  static void Initialize(Environment* env, v8::Local<v8::Object> target);
+  static void Initialize(Environment* env, Local<Object> target);
 
   X509_STORE* ca_store_;
   SSL_CTX* ctx_;
@@ -91,34 +93,34 @@ class SecureContext : public BaseObject {
  protected:
   static const int64_t kExternalSize = sizeof(SSL_CTX);
 
-  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Init(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetCert(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void AddCACert(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void AddCRL(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void AddRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetCiphers(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetECDHCurve(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetDHParam(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetOptions(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void New(const FunctionCallbackInfo<Value>& args);
+  static void Init(const FunctionCallbackInfo<Value>& args);
+  static void SetKey(const FunctionCallbackInfo<Value>& args);
+  static void SetCert(const FunctionCallbackInfo<Value>& args);
+  static void AddCACert(const FunctionCallbackInfo<Value>& args);
+  static void AddCRL(const FunctionCallbackInfo<Value>& args);
+  static void AddRootCerts(const FunctionCallbackInfo<Value>& args);
+  static void SetCiphers(const FunctionCallbackInfo<Value>& args);
+  static void SetECDHCurve(const FunctionCallbackInfo<Value>& args);
+  static void SetDHParam(const FunctionCallbackInfo<Value>& args);
+  static void SetOptions(const FunctionCallbackInfo<Value>& args);
   static void SetSessionIdContext(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
   static void SetSessionTimeout(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Close(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void LoadPKCS12(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GetTicketKeys(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetTicketKeys(const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
+  static void Close(const FunctionCallbackInfo<Value>& args);
+  static void LoadPKCS12(const FunctionCallbackInfo<Value>& args);
+  static void GetTicketKeys(const FunctionCallbackInfo<Value>& args);
+  static void SetTicketKeys(const FunctionCallbackInfo<Value>& args);
   static void SetFreeListLength(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
   static void EnableTicketKeyCallback(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void CtxGetter(v8::Local<v8::String> property,
-                        const v8::PropertyCallbackInfo<v8::Value>& info);
+      const FunctionCallbackInfo<Value>& args);
+  static void CtxGetter(Local<String> property,
+                        const PropertyCallbackInfo<Value>& info);
 
   template <bool primary>
-  static void GetCertificate(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void GetCertificate(const FunctionCallbackInfo<Value>& args);
 
   static int TicketKeyCallback(SSL* ssl,
                                unsigned char* name,
@@ -127,7 +129,7 @@ class SecureContext : public BaseObject {
                                HMAC_CTX* hctx,
                                int enc);
 
-  SecureContext(Environment* env, v8::Local<v8::Object> wrap)
+  SecureContext(Environment* env, Local<Object> wrap)
       : BaseObject(env, wrap),
         ca_store_(nullptr),
         ctx_(nullptr),
@@ -219,7 +221,7 @@ class SSLWrap {
       sizeof(SSL) + sizeof(SSL3_STATE) + 42 * 1024;
 
   static void InitNPN(SecureContext* sc);
-  static void AddMethods(Environment* env, v8::Local<v8::FunctionTemplate> t);
+  static void AddMethods(Environment* env, Local<FunctionTemplate> t);
 
   static SSL_SESSION* GetSessionCallback(SSL* s,
                                          unsigned char* key,
@@ -230,35 +232,35 @@ class SSLWrap {
                             const ClientHelloParser::ClientHello& hello);
 
   static void GetPeerCertificate(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GetSession(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetSession(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void LoadSession(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void IsSessionReused(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void IsInitFinished(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void VerifyError(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GetCurrentCipher(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void EndParser(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void CertCbDone(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Renegotiate(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Shutdown(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GetTLSTicket(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void NewSessionDone(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetOCSPResponse(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void RequestOCSP(const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
+  static void GetSession(const FunctionCallbackInfo<Value>& args);
+  static void SetSession(const FunctionCallbackInfo<Value>& args);
+  static void LoadSession(const FunctionCallbackInfo<Value>& args);
+  static void IsSessionReused(const FunctionCallbackInfo<Value>& args);
+  static void IsInitFinished(const FunctionCallbackInfo<Value>& args);
+  static void VerifyError(const FunctionCallbackInfo<Value>& args);
+  static void GetCurrentCipher(const FunctionCallbackInfo<Value>& args);
+  static void EndParser(const FunctionCallbackInfo<Value>& args);
+  static void CertCbDone(const FunctionCallbackInfo<Value>& args);
+  static void Renegotiate(const FunctionCallbackInfo<Value>& args);
+  static void Shutdown(const FunctionCallbackInfo<Value>& args);
+  static void GetTLSTicket(const FunctionCallbackInfo<Value>& args);
+  static void NewSessionDone(const FunctionCallbackInfo<Value>& args);
+  static void SetOCSPResponse(const FunctionCallbackInfo<Value>& args);
+  static void RequestOCSP(const FunctionCallbackInfo<Value>& args);
   static void GetEphemeralKeyInfo(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GetProtocol(const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
+  static void GetProtocol(const FunctionCallbackInfo<Value>& args);
 
 #ifdef SSL_set_max_send_fragment
   static void SetMaxSendFragment(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
 #endif  // SSL_set_max_send_fragment
 
 #ifdef OPENSSL_NPN_NEGOTIATED
   static void GetNegotiatedProto(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetNPNProtocols(const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
+  static void SetNPNProtocols(const FunctionCallbackInfo<Value>& args);
   static int AdvertiseNextProtoCallback(SSL* s,
                                         const unsigned char** data,
                                         unsigned int* len,
@@ -272,8 +274,8 @@ class SSLWrap {
 #endif  // OPENSSL_NPN_NEGOTIATED
 
   static void GetALPNNegotiatedProto(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetALPNProtocols(const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
+  static void SetALPNProtocols(const FunctionCallbackInfo<Value>& args);
   static int SelectALPNCallback(SSL* s,
                                 const unsigned char** out,
                                 unsigned char* outlen,
@@ -282,8 +284,8 @@ class SSLWrap {
                                 void* arg);
   static int TLSExtStatusCallback(SSL* s, void* arg);
   static int SSLCertCallback(SSL* s, void* arg);
-  static void SSLGetter(v8::Local<v8::String> property,
-                        const v8::PropertyCallbackInfo<v8::Value>& info);
+  static void SSLGetter(Local<String> property,
+                        const PropertyCallbackInfo<Value>& info);
 
   void DestroySSL();
   void WaitForCertCb(CertCb cb, void* arg);
@@ -309,11 +311,11 @@ class SSLWrap {
   ClientHelloParser hello_parser_;
 
 #ifdef NODE__HAVE_TLSEXT_STATUS_CB
-  v8::Persistent<v8::Object> ocsp_response_;
+  Persistent<Object> ocsp_response_;
 #endif  // NODE__HAVE_TLSEXT_STATUS_CB
 
 #ifdef SSL_CTRL_SET_TLSEXT_SERVERNAME_CB
-  v8::Persistent<v8::Value> sni_context_;
+  Persistent<Value> sni_context_;
 #endif
 
   friend class SecureContext;
@@ -331,36 +333,36 @@ class Connection : public SSLWrap<Connection>, public AsyncWrap {
 #endif
   }
 
-  static void Initialize(Environment* env, v8::Local<v8::Object> target);
+  static void Initialize(Environment* env, Local<Object> target);
   void NewSessionDoneCb();
 
 #ifdef OPENSSL_NPN_NEGOTIATED
-  v8::Persistent<v8::Object> npnProtos_;
-  v8::Persistent<v8::Value> selectedNPNProto_;
+  Persistent<Object> npnProtos_;
+  Persistent<Value> selectedNPNProto_;
 #endif
 
 #ifdef SSL_CTRL_SET_TLSEXT_SERVERNAME_CB
-  v8::Persistent<v8::Object> sniObject_;
-  v8::Persistent<v8::String> servername_;
+  Persistent<Object> sniObject_;
+  Persistent<String> servername_;
 #endif
 
   size_t self_size() const override { return sizeof(*this); }
 
  protected:
-  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void EncIn(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void ClearOut(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void ClearPending(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void EncPending(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void EncOut(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void ClearIn(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Start(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Close(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void New(const FunctionCallbackInfo<Value>& args);
+  static void EncIn(const FunctionCallbackInfo<Value>& args);
+  static void ClearOut(const FunctionCallbackInfo<Value>& args);
+  static void ClearPending(const FunctionCallbackInfo<Value>& args);
+  static void EncPending(const FunctionCallbackInfo<Value>& args);
+  static void EncOut(const FunctionCallbackInfo<Value>& args);
+  static void ClearIn(const FunctionCallbackInfo<Value>& args);
+  static void Start(const FunctionCallbackInfo<Value>& args);
+  static void Close(const FunctionCallbackInfo<Value>& args);
 
 #ifdef SSL_CTRL_SET_TLSEXT_SERVERNAME_CB
   // SNI
-  static void GetServername(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetSNICallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void GetServername(const FunctionCallbackInfo<Value>& args);
+  static void SetSNICallback(const FunctionCallbackInfo<Value>& args);
   static int SelectSNIContextCallback_(SSL* s, int* ad, void* arg);
 #endif
 
@@ -384,7 +386,7 @@ class Connection : public SSLWrap<Connection>, public AsyncWrap {
   void SetShutdownFlags();
 
   Connection(Environment* env,
-             v8::Local<v8::Object> wrap,
+             Local<Object> wrap,
              SecureContext* sc,
              SSLWrap<Connection>::Kind kind)
       : SSLWrap<Connection>(env, sc, kind),
@@ -421,7 +423,7 @@ class CipherBase : public BaseObject {
     EVP_CIPHER_CTX_cleanup(&ctx_);
   }
 
-  static void Initialize(Environment* env, v8::Local<v8::Object> target);
+  static void Initialize(Environment* env, Local<Object> target);
 
  protected:
   enum CipherKind {
@@ -444,19 +446,19 @@ class CipherBase : public BaseObject {
   bool SetAuthTag(const char* data, unsigned int len);
   bool SetAAD(const char* data, unsigned int len);
 
-  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Init(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void InitIv(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Update(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Final(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetAutoPadding(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void New(const FunctionCallbackInfo<Value>& args);
+  static void Init(const FunctionCallbackInfo<Value>& args);
+  static void InitIv(const FunctionCallbackInfo<Value>& args);
+  static void Update(const FunctionCallbackInfo<Value>& args);
+  static void Final(const FunctionCallbackInfo<Value>& args);
+  static void SetAutoPadding(const FunctionCallbackInfo<Value>& args);
 
-  static void GetAuthTag(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetAuthTag(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetAAD(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void GetAuthTag(const FunctionCallbackInfo<Value>& args);
+  static void SetAuthTag(const FunctionCallbackInfo<Value>& args);
+  static void SetAAD(const FunctionCallbackInfo<Value>& args);
 
   CipherBase(Environment* env,
-             v8::Local<v8::Object> wrap,
+             Local<Object> wrap,
              CipherKind kind)
       : BaseObject(env, wrap),
         cipher_(nullptr),
@@ -484,19 +486,19 @@ class Hmac : public BaseObject {
     HMAC_CTX_cleanup(&ctx_);
   }
 
-  static void Initialize(Environment* env, v8::Local<v8::Object> target);
+  static void Initialize(Environment* env, Local<Object> target);
 
  protected:
   void HmacInit(const char* hash_type, const char* key, int key_len);
   bool HmacUpdate(const char* data, int len);
   bool HmacDigest(unsigned char** md_value, unsigned int* md_len);
 
-  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void HmacInit(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void HmacUpdate(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void HmacDigest(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void New(const FunctionCallbackInfo<Value>& args);
+  static void HmacInit(const FunctionCallbackInfo<Value>& args);
+  static void HmacUpdate(const FunctionCallbackInfo<Value>& args);
+  static void HmacDigest(const FunctionCallbackInfo<Value>& args);
 
-  Hmac(Environment* env, v8::Local<v8::Object> wrap)
+  Hmac(Environment* env, Local<Object> wrap)
       : BaseObject(env, wrap),
         md_(nullptr),
         initialised_(false) {
@@ -517,17 +519,17 @@ class Hash : public BaseObject {
     EVP_MD_CTX_cleanup(&mdctx_);
   }
 
-  static void Initialize(Environment* env, v8::Local<v8::Object> target);
+  static void Initialize(Environment* env, Local<Object> target);
 
   bool HashInit(const char* hash_type);
   bool HashUpdate(const char* data, int len);
 
  protected:
-  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void HashUpdate(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void HashDigest(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void New(const FunctionCallbackInfo<Value>& args);
+  static void HashUpdate(const FunctionCallbackInfo<Value>& args);
+  static void HashDigest(const FunctionCallbackInfo<Value>& args);
 
-  Hash(Environment* env, v8::Local<v8::Object> wrap)
+  Hash(Environment* env, Local<Object> wrap)
       : BaseObject(env, wrap),
         md_(nullptr),
         initialised_(false) {
@@ -552,7 +554,7 @@ class SignBase : public BaseObject {
     kSignPublicKey
   } Error;
 
-  SignBase(Environment* env, v8::Local<v8::Object> wrap)
+  SignBase(Environment* env, Local<Object> wrap)
       : BaseObject(env, wrap),
         md_(nullptr),
         initialised_(false) {
@@ -575,7 +577,7 @@ class SignBase : public BaseObject {
 class Sign : public SignBase {
  public:
 
-  static void Initialize(Environment* env, v8::Local<v8::Object> target);
+  static void Initialize(Environment* env, Local<Object> target);
 
   Error SignInit(const char* sign_type);
   Error SignUpdate(const char* data, int len);
@@ -586,19 +588,19 @@ class Sign : public SignBase {
                   unsigned int *sig_len);
 
  protected:
-  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SignInit(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SignUpdate(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SignFinal(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void New(const FunctionCallbackInfo<Value>& args);
+  static void SignInit(const FunctionCallbackInfo<Value>& args);
+  static void SignUpdate(const FunctionCallbackInfo<Value>& args);
+  static void SignFinal(const FunctionCallbackInfo<Value>& args);
 
-  Sign(Environment* env, v8::Local<v8::Object> wrap) : SignBase(env, wrap) {
+  Sign(Environment* env, Local<Object> wrap) : SignBase(env, wrap) {
     MakeWeak<Sign>(this);
   }
 };
 
 class Verify : public SignBase {
  public:
-  static void Initialize(Environment* env, v8::Local<v8::Object> target);
+  static void Initialize(Environment* env, Local<Object> target);
 
   Error VerifyInit(const char* verify_type);
   Error VerifyUpdate(const char* data, int len);
@@ -609,12 +611,12 @@ class Verify : public SignBase {
                     bool* verify_result);
 
  protected:
-  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void VerifyInit(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void VerifyUpdate(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void VerifyFinal(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void New(const FunctionCallbackInfo<Value>& args);
+  static void VerifyInit(const FunctionCallbackInfo<Value>& args);
+  static void VerifyUpdate(const FunctionCallbackInfo<Value>& args);
+  static void VerifyFinal(const FunctionCallbackInfo<Value>& args);
 
-  Verify(Environment* env, v8::Local<v8::Object> wrap) : SignBase(env, wrap) {
+  Verify(Environment* env, Local<Object> wrap) : SignBase(env, wrap) {
     MakeWeak<Verify>(this);
   }
 };
@@ -646,7 +648,7 @@ class PublicKeyCipher {
   template <Operation operation,
             EVP_PKEY_cipher_init_t EVP_PKEY_cipher_init,
             EVP_PKEY_cipher_t EVP_PKEY_cipher>
-  static void Cipher(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void Cipher(const FunctionCallbackInfo<Value>& args);
 };
 
 class DiffieHellman : public BaseObject {
@@ -657,7 +659,7 @@ class DiffieHellman : public BaseObject {
     }
   }
 
-  static void Initialize(Environment* env, v8::Local<v8::Object> target);
+  static void Initialize(Environment* env, Local<Object> target);
 
   bool Init(int primeLength, int g);
   bool Init(const char* p, int p_len, int g);
@@ -665,21 +667,21 @@ class DiffieHellman : public BaseObject {
 
  protected:
   static void DiffieHellmanGroup(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GenerateKeys(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GetPrime(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GetGenerator(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GetPublicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GetPrivateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void ComputeSecret(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetPublicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetPrivateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
+  static void New(const FunctionCallbackInfo<Value>& args);
+  static void GenerateKeys(const FunctionCallbackInfo<Value>& args);
+  static void GetPrime(const FunctionCallbackInfo<Value>& args);
+  static void GetGenerator(const FunctionCallbackInfo<Value>& args);
+  static void GetPublicKey(const FunctionCallbackInfo<Value>& args);
+  static void GetPrivateKey(const FunctionCallbackInfo<Value>& args);
+  static void ComputeSecret(const FunctionCallbackInfo<Value>& args);
+  static void SetPublicKey(const FunctionCallbackInfo<Value>& args);
+  static void SetPrivateKey(const FunctionCallbackInfo<Value>& args);
   static void VerifyErrorGetter(
-      v8::Local<v8::String> property,
-      const v8::PropertyCallbackInfo<v8::Value>& args);
+      Local<String> property,
+      const PropertyCallbackInfo<Value>& args);
 
-  DiffieHellman(Environment* env, v8::Local<v8::Object> wrap)
+  DiffieHellman(Environment* env, Local<Object> wrap)
       : BaseObject(env, wrap),
         initialised_(false),
         verifyError_(0),
@@ -704,10 +706,10 @@ class ECDH : public BaseObject {
     group_ = nullptr;
   }
 
-  static void Initialize(Environment* env, v8::Local<v8::Object> target);
+  static void Initialize(Environment* env, Local<Object> target);
 
  protected:
-  ECDH(Environment* env, v8::Local<v8::Object> wrap, EC_KEY* key)
+  ECDH(Environment* env, Local<Object> wrap, EC_KEY* key)
       : BaseObject(env, wrap),
         key_(key),
         group_(EC_KEY_get0_group(key_)) {
@@ -715,13 +717,13 @@ class ECDH : public BaseObject {
     ASSERT_NE(group_, nullptr);
   }
 
-  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GenerateKeys(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void ComputeSecret(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GetPrivateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetPrivateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void GetPublicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetPublicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void New(const FunctionCallbackInfo<Value>& args);
+  static void GenerateKeys(const FunctionCallbackInfo<Value>& args);
+  static void ComputeSecret(const FunctionCallbackInfo<Value>& args);
+  static void GetPrivateKey(const FunctionCallbackInfo<Value>& args);
+  static void SetPrivateKey(const FunctionCallbackInfo<Value>& args);
+  static void GetPublicKey(const FunctionCallbackInfo<Value>& args);
+  static void SetPublicKey(const FunctionCallbackInfo<Value>& args);
 
   EC_POINT* BufferToPoint(char* data, size_t len);
 
@@ -734,9 +736,9 @@ class ECDH : public BaseObject {
 
 bool EntropySource(unsigned char* buffer, size_t length);
 #ifndef OPENSSL_NO_ENGINE
-void SetEngine(const v8::FunctionCallbackInfo<v8::Value>& args);
+void SetEngine(const FunctionCallbackInfo<Value>& args);
 #endif  // !OPENSSL_NO_ENGINE
-void InitCrypto(v8::Local<v8::Object> target);
+void InitCrypto(Local<Object> target);
 
 }  // namespace crypto
 }  // namespace node

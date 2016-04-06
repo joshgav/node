@@ -23,19 +23,11 @@
 
 #include "env.h"
 #include "env-inl.h"
+#include "node_ni.h"
 
 namespace node {
 
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::GCCallbackFlags;
-using v8::GCType;
-using v8::HandleScope;
-using v8::Isolate;
-using v8::Local;
-using v8::Object;
-using v8::String;
-using v8::Value;
+using namespace node::ni;
 
 #define SLURP_STRING(obj, member, valp) \
   if (!(obj)->IsObject()) { \

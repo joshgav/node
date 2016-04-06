@@ -3,21 +3,14 @@
 #include "env.h"
 #include "env-inl.h"
 
+#include "node_ni.h"
+
 #include <string.h>
 
 
 namespace node {
 
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::GCCallbackFlags;
-using v8::GCType;
-using v8::HandleScope;
-using v8::Isolate;
-using v8::Local;
-using v8::Object;
-using v8::String;
-using v8::Value;
+using namespace node::ni;
 
 static uint64_t counter_gc_start_time;
 static uint64_t counter_gc_end_time;

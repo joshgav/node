@@ -2,8 +2,8 @@
 #define SRC_NODE_DTRACE_H_
 
 #include "node.h"
-#include "v8.h"
 #include "env.h"
+#include "node_ni.h"
 
 extern "C" {
 /*
@@ -54,7 +54,9 @@ typedef struct {
 
 namespace node {
 
-void InitDTrace(Environment* env, v8::Local<v8::Object> target);
+using namespace node::ni;
+
+void InitDTrace(Environment* env, Local<Object> target);
 
 }  // namespace node
 

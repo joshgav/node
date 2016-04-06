@@ -7,6 +7,7 @@
 #include "node_version.h"
 #include "node_internals.h"
 #include "node_revert.h"
+#include "node_ni.h"
 
 #if defined HAVE_PERFCTR
 #include "node_counters.h"
@@ -39,9 +40,6 @@
 #include "string_bytes.h"
 #include "util.h"
 #include "uv.h"
-#include "libplatform/libplatform.h"
-#include "v8-debug.h"
-#include "v8-profiler.h"
 #include "zlib.h"
 
 #ifdef NODE_ENABLE_VTUNE_PROFILING
@@ -100,41 +98,7 @@ namespace node { template <typename T> using atomic = std::atomic<T>; }
 
 namespace node {
 
-using v8::Array;
-using v8::ArrayBuffer;
-using v8::Boolean;
-using v8::Context;
-using v8::EscapableHandleScope;
-using v8::Exception;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::HeapStatistics;
-using v8::Integer;
-using v8::Isolate;
-using v8::Local;
-using v8::Locker;
-using v8::MaybeLocal;
-using v8::Message;
-using v8::Name;
-using v8::Null;
-using v8::Number;
-using v8::Object;
-using v8::ObjectTemplate;
-using v8::Promise;
-using v8::PromiseRejectMessage;
-using v8::PropertyCallbackInfo;
-using v8::ScriptOrigin;
-using v8::SealHandleScope;
-using v8::StackFrame;
-using v8::StackTrace;
-using v8::String;
-using v8::TryCatch;
-using v8::Uint32;
-using v8::Uint32Array;
-using v8::V8;
-using v8::Value;
+using namespace node::ni;
 
 static bool print_eval = false;
 static bool force_repl = false;
@@ -183,7 +147,7 @@ static bool debugger_running;
 static uv_async_t dispatch_debug_messages_async;
 
 static node::atomic<Isolate*> node_isolate;
-static v8::Platform* default_platform;
+static Platform* default_platform;
 
 static void PrintErrorString(const char* format, ...) {
   va_list ap;
@@ -716,22 +680,22 @@ const char *signo_string(int signo) {
 // Convenience methods
 
 
-void ThrowError(v8::Isolate* isolate, const char* errmsg) {
+void ThrowError(Isolate* isolate, const char* errmsg) {
   Environment::GetCurrent(isolate)->ThrowError(errmsg);
 }
 
 
-void ThrowTypeError(v8::Isolate* isolate, const char* errmsg) {
+void ThrowTypeError(Isolate* isolate, const char* errmsg) {
   Environment::GetCurrent(isolate)->ThrowTypeError(errmsg);
 }
 
 
-void ThrowRangeError(v8::Isolate* isolate, const char* errmsg) {
+void ThrowRangeError(Isolate* isolate, const char* errmsg) {
   Environment::GetCurrent(isolate)->ThrowRangeError(errmsg);
 }
 
 
-void ThrowErrnoException(v8::Isolate* isolate,
+void ThrowErrnoException(Isolate* isolate,
                          int errorno,
                          const char* syscall,
                          const char* message,
@@ -743,7 +707,7 @@ void ThrowErrnoException(v8::Isolate* isolate,
 }
 
 
-void ThrowUVException(v8::Isolate* isolate,
+void ThrowUVException(Isolate* isolate,
                       int errorno,
                       const char* syscall,
                       const char* message,
@@ -1152,7 +1116,7 @@ Local<Value> MakeCallback(Environment* env,
                           const Local<Function> callback,
                           int argc,
                           Local<Value> argv[]) {
-  // If you hit this assertion, you forgot to enter the v8::Context first.
+  // If you hit this assertion, you forgot to enter the Context first.
   CHECK_EQ(env->context(), env->isolate()->GetCurrentContext());
 
   Local<Function> pre_fn = env->async_hooks_pre_function();
@@ -1661,8 +1625,8 @@ static Local<Value> ExecuteString(Environment* env,
   try_catch.SetVerbose(false);
 
   ScriptOrigin origin(filename);
-  MaybeLocal<v8::Script> script =
-      v8::Script::Compile(env->context(), source, &origin);
+  MaybeLocal<Script> script =
+      Script::Compile(env->context(), source, &origin);
   if (script.IsEmpty()) {
     ReportException(env, try_catch);
     exit(3);
@@ -2614,9 +2578,9 @@ static void EnvQuery(Local<String> property,
     rc = 0;
     if (key_ptr[0] == L'=') {
       // Environment variables that start with '=' are hidden and read-only.
-      rc = static_cast<int32_t>(v8::ReadOnly) |
-           static_cast<int32_t>(v8::DontDelete) |
-           static_cast<int32_t>(v8::DontEnum);
+      rc = static_cast<int32_t>(ReadOnly) |
+           static_cast<int32_t>(DontDelete) |
+           static_cast<int32_t>(DontEnum);
     }
   }
 #endif
@@ -2865,7 +2829,7 @@ void StopProfilerIdleNotifier(const FunctionCallbackInfo<Value>& args) {
     obj->DefineOwnProperty(env->context(),                                    \
                            OneByteString(env->isolate(), str),                \
                            var,                                               \
-                           v8::ReadOnly).FromJust();                          \
+                           ReadOnly).FromJust();                          \
   } while (0)
 
 #define READONLY_DONT_ENUM_PROPERTY(obj, str, var)                            \
@@ -2873,8 +2837,8 @@ void StopProfilerIdleNotifier(const FunctionCallbackInfo<Value>& args) {
     obj->DefineOwnProperty(env->context(),                                    \
                            OneByteString(env->isolate(), str),                \
                            var,                                               \
-                           static_cast<v8::PropertyAttribute>(v8::ReadOnly |  \
-                                                              v8::DontEnum))  \
+                           static_cast<PropertyAttribute>(ReadOnly |  \
+                                                              DontEnum))  \
         .FromJust();                                                          \
   } while (0)
 
@@ -2955,11 +2919,11 @@ void SetupProcessObject(Environment* env,
   READONLY_PROPERTY(promiseRejectEvent,
                     "unhandled",
                     Integer::New(env->isolate(),
-                                 v8::kPromiseRejectWithNoHandler));
+                                 kPromiseRejectWithNoHandler));
   READONLY_PROPERTY(promiseRejectEvent,
                     "handled",
                     Integer::New(env->isolate(),
-                                 v8::kPromiseHandlerAddedAfterReject));
+                                 kPromiseHandlerAddedAfterReject));
 
 #if HAVE_OPENSSL
   // Stupid code to slice out the version string.
@@ -3653,7 +3617,7 @@ static void TryStartDebugger() {
   // Call only async signal-safe functions here!  Don't retry the exchange,
   // it will deadlock when the thread is interrupted inside a critical section.
   if (auto isolate = node_isolate.exchange(nullptr)) {
-    v8::Debug::DebugBreak(isolate);
+    Debug::DebugBreak(isolate);
     uv_async_send(&dispatch_debug_messages_async);
     CHECK_EQ(nullptr, node_isolate.exchange(isolate));
   }
@@ -3680,7 +3644,7 @@ static void DispatchDebugMessagesAsyncCallback(uv_async_t* handle) {
   }
 
   Isolate::Scope isolate_scope(isolate);
-  v8::Debug::ProcessDebugMessages(isolate);
+  Debug::ProcessDebugMessages(isolate);
   CHECK_EQ(nullptr, node_isolate.exchange(isolate));
 }
 
@@ -3886,7 +3850,7 @@ static void DebugProcess(const FunctionCallbackInfo<Value>& args) {
 
 
 static void DebugPause(const FunctionCallbackInfo<Value>& args) {
-  v8::Debug::DebugBreak(args.GetIsolate());
+  Debug::DebugBreak(args.GetIsolate());
 }
 
 
@@ -4005,7 +3969,7 @@ void Init(int* argc,
 #ifdef __POSIX__
   // Block SIGPROF signals when sleeping in epoll_wait/kevent/etc.  Avoids the
   // performance penalty of frequent EINTR wakeups when the profiler is running.
-  // Only do this for v8.log profiling, as it breaks v8::CpuProfiler users.
+  // Only do this for v8.log profiling, as it breaks CpuProfiler users.
   if (v8_is_profiling) {
     uv_loop_configure(uv_default_loop(), UV_LOOP_BLOCK_SIGNAL, SIGPROF);
   }

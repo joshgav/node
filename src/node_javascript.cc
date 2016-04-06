@@ -1,16 +1,13 @@
 #include "node.h"
 #include "node_natives.h"
-#include "v8.h"
 #include "env.h"
 #include "env-inl.h"
 
+#include "node_ni.h"
+
 namespace node {
 
-using v8::HandleScope;
-using v8::Local;
-using v8::NewStringType;
-using v8::Object;
-using v8::String;
+using namespace node::ni;
 
 Local<String> MainSource(Environment* env) {
   return String::NewFromUtf8(

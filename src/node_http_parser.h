@@ -1,13 +1,14 @@
 #ifndef SRC_NODE_HTTP_PARSER_H_
 #define SRC_NODE_HTTP_PARSER_H_
 
-#include "v8.h"
-
 #include "http_parser.h"
+#include "node_ni.h"
 
 namespace node {
 
-void InitHttpParser(v8::Local<v8::Object> target);
+using namespace node::ni;
+
+void InitHttpParser(Local<Object> target);
 
 }  // namespace node
 

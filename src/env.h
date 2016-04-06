@@ -8,7 +8,8 @@
 #include "tree.h"
 #include "util.h"
 #include "uv.h"
-#include "v8.h"
+
+#include "node_ni.h"
 
 #include <stdint.h>
 
@@ -249,35 +250,37 @@ namespace node {
   V(zero_return_string, "ZERO_RETURN")                                        \
 
 #define ENVIRONMENT_STRONG_PERSISTENT_PROPERTIES(V)                           \
-  V(as_external, v8::External)                                                \
-  V(async_hooks_destroy_function, v8::Function)                               \
-  V(async_hooks_init_function, v8::Function)                                  \
-  V(async_hooks_post_function, v8::Function)                                  \
-  V(async_hooks_pre_function, v8::Function)                                   \
-  V(binding_cache_object, v8::Object)                                         \
-  V(buffer_constructor_function, v8::Function)                                \
-  V(buffer_prototype_object, v8::Object)                                      \
-  V(context, v8::Context)                                                     \
-  V(domain_array, v8::Array)                                                  \
-  V(domains_stack_array, v8::Array)                                           \
-  V(fs_stats_constructor_function, v8::Function)                              \
-  V(generic_internal_field_template, v8::ObjectTemplate)                      \
-  V(jsstream_constructor_template, v8::FunctionTemplate)                      \
-  V(module_load_list_array, v8::Array)                                        \
-  V(pipe_constructor_template, v8::FunctionTemplate)                          \
-  V(process_object, v8::Object)                                               \
-  V(promise_reject_function, v8::Function)                                    \
-  V(push_values_to_array_function, v8::Function)                              \
-  V(script_context_constructor_template, v8::FunctionTemplate)                \
-  V(script_data_constructor_function, v8::Function)                           \
-  V(secure_context_constructor_template, v8::FunctionTemplate)                \
-  V(tcp_constructor_template, v8::FunctionTemplate)                           \
-  V(tick_callback_function, v8::Function)                                     \
-  V(tls_wrap_constructor_function, v8::Function)                              \
-  V(tls_wrap_constructor_template, v8::FunctionTemplate)                      \
-  V(tty_constructor_template, v8::FunctionTemplate)                           \
-  V(udp_constructor_function, v8::Function)                                   \
-  V(write_wrap_constructor_function, v8::Function)                            \
+  V(as_external, External)                                                \
+  V(async_hooks_destroy_function, Function)                               \
+  V(async_hooks_init_function, Function)                                  \
+  V(async_hooks_post_function, Function)                                  \
+  V(async_hooks_pre_function, Function)                                   \
+  V(binding_cache_object, Object)                                         \
+  V(buffer_constructor_function, Function)                                \
+  V(buffer_prototype_object, Object)                                      \
+  V(context, Context)                                                     \
+  V(domain_array, Array)                                                  \
+  V(domains_stack_array, Array)                                           \
+  V(fs_stats_constructor_function, Function)                              \
+  V(generic_internal_field_template, ObjectTemplate)                      \
+  V(jsstream_constructor_template, FunctionTemplate)                      \
+  V(module_load_list_array, Array)                                        \
+  V(pipe_constructor_template, FunctionTemplate)                          \
+  V(process_object, Object)                                               \
+  V(promise_reject_function, Function)                                    \
+  V(push_values_to_array_function, Function)                              \
+  V(script_context_constructor_template, FunctionTemplate)                \
+  V(script_data_constructor_function, Function)                           \
+  V(secure_context_constructor_template, FunctionTemplate)                \
+  V(tcp_constructor_template, FunctionTemplate)                           \
+  V(tick_callback_function, Function)                                     \
+  V(tls_wrap_constructor_function, Function)                              \
+  V(tls_wrap_constructor_template, FunctionTemplate)                      \
+  V(tty_constructor_template, FunctionTemplate)                           \
+  V(udp_constructor_function, Function)                                   \
+  V(write_wrap_constructor_function, Function)                            \
+
+using namespace node::ni;
 
 class Environment;
 
@@ -413,24 +416,24 @@ class Environment {
     ListNode<HandleCleanup> handle_cleanup_queue_;
   };
 
-  static inline Environment* GetCurrent(v8::Isolate* isolate);
-  static inline Environment* GetCurrent(v8::Local<v8::Context> context);
+  static inline Environment* GetCurrent(Isolate* isolate);
+  static inline Environment* GetCurrent(Local<Context> context);
   static inline Environment* GetCurrent(
-      const v8::FunctionCallbackInfo<v8::Value>& info);
+      const FunctionCallbackInfo<Value>& info);
 
   template <typename T>
   static inline Environment* GetCurrent(
-      const v8::PropertyCallbackInfo<T>& info);
+      const PropertyCallbackInfo<T>& info);
 
   // See CreateEnvironment() in src/node.cc.
-  static inline Environment* New(v8::Local<v8::Context> context,
+  static inline Environment* New(Local<Context> context,
                                  uv_loop_t* loop);
   inline void CleanupHandles();
   inline void Dispose();
 
-  void AssignToContext(v8::Local<v8::Context> context);
+  void AssignToContext(Local<Context> context);
 
-  inline v8::Isolate* isolate() const;
+  inline Isolate* isolate() const;
   inline uv_loop_t* event_loop() const;
   inline bool async_wrap_callbacks_enabled() const;
   inline bool in_domain() const;
@@ -498,34 +501,34 @@ class Environment {
                                const char* dest = nullptr);
 
   // Convenience methods for contextify
-  inline static void ThrowError(v8::Isolate* isolate, const char* errmsg);
-  inline static void ThrowTypeError(v8::Isolate* isolate, const char* errmsg);
-  inline static void ThrowRangeError(v8::Isolate* isolate, const char* errmsg);
+  inline static void ThrowError(Isolate* isolate, const char* errmsg);
+  inline static void ThrowTypeError(Isolate* isolate, const char* errmsg);
+  inline static void ThrowRangeError(Isolate* isolate, const char* errmsg);
 
-  inline v8::Local<v8::FunctionTemplate>
-      NewFunctionTemplate(v8::FunctionCallback callback,
-                          v8::Local<v8::Signature> signature =
-                              v8::Local<v8::Signature>());
+  inline Local<FunctionTemplate>
+      NewFunctionTemplate(FunctionCallback callback,
+                          Local<Signature> signature =
+                              Local<Signature>());
 
   // Convenience methods for NewFunctionTemplate().
-  inline void SetMethod(v8::Local<v8::Object> that,
+  inline void SetMethod(Local<Object> that,
                         const char* name,
-                        v8::FunctionCallback callback);
-  inline void SetProtoMethod(v8::Local<v8::FunctionTemplate> that,
+                        FunctionCallback callback);
+  inline void SetProtoMethod(Local<FunctionTemplate> that,
                              const char* name,
-                             v8::FunctionCallback callback);
-  inline void SetTemplateMethod(v8::Local<v8::FunctionTemplate> that,
+                             FunctionCallback callback);
+  inline void SetTemplateMethod(Local<FunctionTemplate> that,
                                 const char* name,
-                                v8::FunctionCallback callback);
+                                FunctionCallback callback);
 
-  inline v8::Local<v8::Object> NewInternalFieldObject();
+  inline Local<Object> NewInternalFieldObject();
 
   // Strings and private symbols are shared across shared contexts
   // The getters simply proxy to the per-isolate primitive.
-#define VP(PropertyName, StringValue) V(v8::Private, PropertyName, StringValue)
-#define VS(PropertyName, StringValue) V(v8::String, PropertyName, StringValue)
+#define VP(PropertyName, StringValue) V(Private, PropertyName, StringValue)
+#define VS(PropertyName, StringValue) V(String, PropertyName, StringValue)
 #define V(TypeName, PropertyName, StringValue)                                \
-  inline v8::Local<TypeName> PropertyName() const;
+  inline Local<TypeName> PropertyName() const;
   PER_ISOLATE_PRIVATE_SYMBOL_PROPERTIES(VP)
   PER_ISOLATE_STRING_PROPERTIES(VS)
 #undef V
@@ -533,8 +536,8 @@ class Environment {
 #undef VP
 
 #define V(PropertyName, TypeName)                                             \
-  inline v8::Local<TypeName> PropertyName() const;                            \
-  inline void set_ ## PropertyName(v8::Local<TypeName> value);
+  inline Local<TypeName> PropertyName() const;                            \
+  inline void set_ ## PropertyName(Local<TypeName> value);
   ENVIRONMENT_STRONG_PERSISTENT_PROPERTIES(V)
 #undef V
 
@@ -555,11 +558,11 @@ class Environment {
   static const int kIsolateSlot = NODE_ISOLATE_SLOT;
 
   class IsolateData;
-  inline Environment(v8::Local<v8::Context> context, uv_loop_t* loop);
+  inline Environment(Local<Context> context, uv_loop_t* loop);
   inline ~Environment();
   inline IsolateData* isolate_data() const;
 
-  v8::Isolate* const isolate_;
+  Isolate* const isolate_;
   IsolateData* const isolate_data_;
   uv_check_t immediate_check_handle_;
   uv_idle_t immediate_idle_handle_;
@@ -592,22 +595,22 @@ class Environment {
   char* http_parser_buffer_;
 
 #define V(PropertyName, TypeName)                                             \
-  v8::Persistent<TypeName> PropertyName ## _;
+  Persistent<TypeName> PropertyName ## _;
   ENVIRONMENT_STRONG_PERSISTENT_PROPERTIES(V)
 #undef V
 
   // Per-thread, reference-counted singleton.
   class IsolateData {
    public:
-    static inline IsolateData* GetOrCreate(v8::Isolate* isolate,
+    static inline IsolateData* GetOrCreate(Isolate* isolate,
                                            uv_loop_t* loop);
     inline void Put();
     inline uv_loop_t* event_loop() const;
 
-#define VP(PropertyName, StringValue) V(v8::Private, PropertyName, StringValue)
-#define VS(PropertyName, StringValue) V(v8::String, PropertyName, StringValue)
+#define VP(PropertyName, StringValue) V(Private, PropertyName, StringValue)
+#define VS(PropertyName, StringValue) V(String, PropertyName, StringValue)
 #define V(TypeName, PropertyName, StringValue)                                \
-    inline v8::Local<TypeName> PropertyName() const;
+    inline Local<TypeName> PropertyName() const;
     PER_ISOLATE_PRIVATE_SYMBOL_PROPERTIES(VP)
     PER_ISOLATE_STRING_PROPERTIES(VS)
 #undef V
@@ -615,17 +618,17 @@ class Environment {
 #undef VP
 
    private:
-    inline static IsolateData* Get(v8::Isolate* isolate);
-    inline explicit IsolateData(v8::Isolate* isolate, uv_loop_t* loop);
-    inline v8::Isolate* isolate() const;
+    inline static IsolateData* Get(Isolate* isolate);
+    inline explicit IsolateData(Isolate* isolate, uv_loop_t* loop);
+    inline Isolate* isolate() const;
 
     uv_loop_t* const event_loop_;
-    v8::Isolate* const isolate_;
+    Isolate* const isolate_;
 
-#define VP(PropertyName, StringValue) V(v8::Private, PropertyName, StringValue)
-#define VS(PropertyName, StringValue) V(v8::String, PropertyName, StringValue)
+#define VP(PropertyName, StringValue) V(Private, PropertyName, StringValue)
+#define VS(PropertyName, StringValue) V(String, PropertyName, StringValue)
 #define V(TypeName, PropertyName, StringValue)                                \
-    v8::Eternal<TypeName> PropertyName ## _;
+    Eternal<TypeName> PropertyName ## _;
     PER_ISOLATE_PRIVATE_SYMBOL_PROPERTIES(VP)
     PER_ISOLATE_STRING_PROPERTIES(VS)
 #undef V

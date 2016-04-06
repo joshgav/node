@@ -12,7 +12,9 @@
 #include "string_bytes.h"
 #include "util.h"
 #include "util-inl.h"
-#include "v8.h"
+
+#include "node_ni.h"
+
 // CNNIC Hash WhiteList is taken from
 // https://hg.mozilla.org/mozilla-central/raw-file/98820360ab66/security/
 // certverifier/CNNICHashWhitelist.inc
@@ -70,31 +72,7 @@ static const int X509_NAME_FLAGS = ASN1_STRFLGS_ESC_CTRL
 namespace node {
 namespace crypto {
 
-using v8::AccessorSignature;
-using v8::Array;
-using v8::Boolean;
-using v8::Context;
-using v8::DEFAULT;
-using v8::DontDelete;
-using v8::EscapableHandleScope;
-using v8::Exception;
-using v8::External;
-using v8::False;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Isolate;
-using v8::Local;
-using v8::Null;
-using v8::Object;
-using v8::Persistent;
-using v8::PropertyAttribute;
-using v8::PropertyCallbackInfo;
-using v8::ReadOnly;
-using v8::String;
-using v8::V8;
-using v8::Value;
+using namespace node::ni;
 
 
 // Subject DER of CNNIC ROOT CA and CNNIC EV ROOT CA are taken from
@@ -1804,7 +1782,7 @@ void SSLWrap<Base>::NewSessionDone(const FunctionCallbackInfo<Value>& args) {
 
 template <class Base>
 void SSLWrap<Base>::SetOCSPResponse(
-    const v8::FunctionCallbackInfo<v8::Value>& args) {
+    const FunctionCallbackInfo<Value>& args) {
 #ifdef NODE__HAVE_TLSEXT_STATUS_CB
   HandleScope scope(args.GetIsolate());
 
@@ -1823,7 +1801,7 @@ void SSLWrap<Base>::SetOCSPResponse(
 
 template <class Base>
 void SSLWrap<Base>::RequestOCSP(
-    const v8::FunctionCallbackInfo<v8::Value>& args) {
+    const FunctionCallbackInfo<Value>& args) {
 #ifdef NODE__HAVE_TLSEXT_STATUS_CB
   HandleScope scope(args.GetIsolate());
 
@@ -1836,7 +1814,7 @@ void SSLWrap<Base>::RequestOCSP(
 
 template <class Base>
 void SSLWrap<Base>::GetEphemeralKeyInfo(
-    const v8::FunctionCallbackInfo<v8::Value>& args) {
+    const FunctionCallbackInfo<Value>& args) {
   Base* w = Unwrap<Base>(args.Holder());
   Environment* env = Environment::GetCurrent(args);
 
@@ -1881,7 +1859,7 @@ void SSLWrap<Base>::GetEphemeralKeyInfo(
 #ifdef SSL_set_max_send_fragment
 template <class Base>
 void SSLWrap<Base>::SetMaxSendFragment(
-    const v8::FunctionCallbackInfo<v8::Value>& args) {
+    const FunctionCallbackInfo<Value>& args) {
   HandleScope scope(args.GetIsolate());
   CHECK(args.Length() >= 1 && args[0]->IsNumber());
 
@@ -2180,7 +2158,7 @@ int SSLWrap<Base>::SelectALPNCallback(SSL* s,
 
 template <class Base>
 void SSLWrap<Base>::GetALPNNegotiatedProto(
-    const FunctionCallbackInfo<v8::Value>& args) {
+    const FunctionCallbackInfo<Value>& args) {
 #ifdef TLSEXT_TYPE_application_layer_protocol_negotiation
   HandleScope scope(args.GetIsolate());
   Base* w = Unwrap<Base>(args.Holder());
@@ -2201,7 +2179,7 @@ void SSLWrap<Base>::GetALPNNegotiatedProto(
 
 template <class Base>
 void SSLWrap<Base>::SetALPNProtocols(
-    const FunctionCallbackInfo<v8::Value>& args) {
+    const FunctionCallbackInfo<Value>& args) {
 #ifdef TLSEXT_TYPE_application_layer_protocol_negotiation
   HandleScope scope(args.GetIsolate());
   Base* w = Unwrap<Base>(args.Holder());
@@ -3503,7 +3481,7 @@ void CipherBase::Final(const FunctionCallbackInfo<Value>& args) {
 }
 
 
-void Hmac::Initialize(Environment* env, v8::Local<v8::Object> target) {
+void Hmac::Initialize(Environment* env, Local<Object> target) {
   Local<FunctionTemplate> t = env->NewFunctionTemplate(New);
 
   t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -3637,7 +3615,7 @@ void Hmac::HmacDigest(const FunctionCallbackInfo<Value>& args) {
 }
 
 
-void Hash::Initialize(Environment* env, v8::Local<v8::Object> target) {
+void Hash::Initialize(Environment* env, Local<Object> target) {
   Local<FunctionTemplate> t = env->NewFunctionTemplate(New);
 
   t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -3785,7 +3763,7 @@ void SignBase::CheckThrow(SignBase::Error error) {
 
 
 
-void Sign::Initialize(Environment* env, v8::Local<v8::Object> target) {
+void Sign::Initialize(Environment* env, Local<Object> target) {
   Local<FunctionTemplate> t = env->NewFunctionTemplate(New);
 
   t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -3987,7 +3965,7 @@ void Sign::SignFinal(const FunctionCallbackInfo<Value>& args) {
 }
 
 
-void Verify::Initialize(Environment* env, v8::Local<v8::Object> target) {
+void Verify::Initialize(Environment* env, Local<Object> target) {
   Local<FunctionTemplate> t = env->NewFunctionTemplate(New);
 
   t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -4337,7 +4315,7 @@ void DiffieHellman::Initialize(Environment* env, Local<Object> target) {
   Local<FunctionTemplate> t = env->NewFunctionTemplate(New);
 
   const PropertyAttribute attributes =
-      static_cast<PropertyAttribute>(v8::ReadOnly | v8::DontDelete);
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete);
 
   t->InstanceTemplate()->SetInternalFieldCount(1);
 

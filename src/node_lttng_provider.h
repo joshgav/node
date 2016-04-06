@@ -1,3 +1,5 @@
+#include "node_ni.h"
+
 #ifndef SRC_NODE_LTTNG_PROVIDER_H_
 #define SRC_NODE_LTTNG_PROVIDER_H_
 
@@ -6,6 +8,8 @@
 #include "node_lttng_tp.h"
 
 namespace node {
+
+using namespace node::ni;
 
 #define FOR_ALL_GC_TYPES(APPLY) \
   APPLY(kGCTypeScavenge) \
@@ -56,34 +60,34 @@ void NODE_NET_STREAM_END(node_lttng_connection_t* conn,
   tracepoint(node, net_stream_end, conn->remote, port, fd);
 }
 
-void NODE_GC_START(v8::GCType type,
-                   v8::GCCallbackFlags flags,
-                   v8::Isolate* isolate) {
+void NODE_GC_START(GCType type,
+                   GCCallbackFlags flags,
+                   Isolate* isolate) {
   const char* typeStr = "Unkown GC Type";
   const char* flagsStr = "Unknown GC Flag";
 
-#define BUILD_IF(f) if (type == v8::GCType::f) { typeStr = #f; }
+#define BUILD_IF(f) if (type == GCType::f) { typeStr = #f; }
   FOR_ALL_GC_TYPES(BUILD_IF);
 #undef BUILD_IF
 
-#define BUILD_IF(f) if (flags == v8::GCCallbackFlags::f) { flagsStr = #f; }
+#define BUILD_IF(f) if (flags == GCCallbackFlags::f) { flagsStr = #f; }
   FOR_ALL_GC_CALLBACK_FLAGS(BUILD_IF);
 #undef BUILD_IF
 
   tracepoint(node, gc_start, typeStr, flagsStr);
 }
 
-void NODE_GC_DONE(v8::GCType type,
-                  v8::GCCallbackFlags flags,
-                  v8::Isolate* isolate) {
+void NODE_GC_DONE(GCType type,
+                  GCCallbackFlags flags,
+                  Isolate* isolate) {
   const char* typeStr = "Unkown GC Type";
   const char* flagsStr = "Unknown GC Flag";
 
-#define BUILD_IF(f) if (type == v8::GCType::f) { typeStr = #f; }
+#define BUILD_IF(f) if (type == GCType::f) { typeStr = #f; }
   FOR_ALL_GC_TYPES(BUILD_IF);
 #undef BUILD_IF
 
-#define BUILD_IF(f) if (flags == v8::GCCallbackFlags::f) { flagsStr = #f; }
+#define BUILD_IF(f) if (flags == GCCallbackFlags::f) { flagsStr = #f; }
   FOR_ALL_GC_CALLBACK_FLAGS(BUILD_IF);
 #undef BUILD_IF
 

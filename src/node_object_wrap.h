@@ -1,11 +1,12 @@
 #ifndef SRC_NODE_OBJECT_WRAP_H_
 #define SRC_NODE_OBJECT_WRAP_H_
 
-#include "v8.h"
 #include <assert.h>
-
+#include "node_ni.h"
 
 namespace node {
+
+using namespace node::ni;
 
 class ObjectWrap {
  public:
@@ -24,7 +25,7 @@ class ObjectWrap {
 
 
   template <class T>
-  static inline T* Unwrap(v8::Local<v8::Object> handle) {
+  static inline T* Unwrap(Local<Object> handle) {
     assert(!handle.IsEmpty());
     assert(handle->InternalFieldCount() > 0);
     // Cast to ObjectWrap before casting to T.  A direct cast from void
@@ -35,33 +36,33 @@ class ObjectWrap {
   }
 
 
-  inline v8::Local<v8::Object> handle() {
-    return handle(v8::Isolate::GetCurrent());
+  inline Local<Object> handle() {
+    return handle(Isolate::GetCurrent());
   }
 
 
-  inline v8::Local<v8::Object> handle(v8::Isolate* isolate) {
-    return v8::Local<v8::Object>::New(isolate, persistent());
+  inline Local<Object> handle(Isolate* isolate) {
+    return Local<Object>::New(isolate, persistent());
   }
 
 
-  inline v8::Persistent<v8::Object>& persistent() {
+  inline Persistent<Object>& persistent() {
     return handle_;
   }
 
 
  protected:
-  inline void Wrap(v8::Local<v8::Object> handle) {
+  inline void Wrap(Local<Object> handle) {
     assert(persistent().IsEmpty());
     assert(handle->InternalFieldCount() > 0);
     handle->SetAlignedPointerInInternalField(0, this);
-    persistent().Reset(v8::Isolate::GetCurrent(), handle);
+    persistent().Reset(Isolate::GetCurrent(), handle);
     MakeWeak();
   }
 
 
   inline void MakeWeak(void) {
-    persistent().SetWeak(this, WeakCallback, v8::WeakCallbackType::kParameter);
+    persistent().SetWeak(this, WeakCallback, WeakCallbackType::kParameter);
     persistent().MarkIndependent();
   }
 
@@ -96,14 +97,14 @@ class ObjectWrap {
 
  private:
   static void WeakCallback(
-      const v8::WeakCallbackInfo<ObjectWrap>& data) {
+      const WeakCallbackInfo<ObjectWrap>& data) {
     ObjectWrap* wrap = data.GetParameter();
     assert(wrap->refs_ == 0);
     wrap->handle_.Reset();
     delete wrap;
   }
 
-  v8::Persistent<v8::Object> handle_;
+  Persistent<Object> handle_;
 };
 
 }  // namespace node

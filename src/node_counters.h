@@ -21,13 +21,15 @@
 #define NODE_COUNT_SERVER_CONN_OPEN() do { } while (false)
 #endif
 
-#include "v8.h"
 #include "env.h"
+#include "node_ni.h"
 
 namespace node {
 
-void InitPerfCounters(Environment* env, v8::Local<v8::Object> target);
-void TermPerfCounters(v8::Local<v8::Object> target);
+using namespace node::ni;
+
+void InitPerfCounters(Environment* env, Local<Object> target);
+void TermPerfCounters(Local<Object> target);
 
 }  // namespace node
 

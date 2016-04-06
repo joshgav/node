@@ -2,8 +2,11 @@
 #define SRC_UTIL_INL_H_
 
 #include "util.h"
+#include "node_ni.h"
 
 namespace node {
+
+using namespace node::ni;
 
 template <typename T>
 ListNode<T>::ListNode() : prev_(this), next_(this) {}
@@ -128,9 +131,9 @@ inline ContainerOfHelper<Inner, Outer> ContainerOf(Inner Outer::*field,
 }
 
 template <class TypeName>
-inline v8::Local<TypeName> PersistentToLocal(
-    v8::Isolate* isolate,
-    const v8::Persistent<TypeName>& persistent) {
+inline Local<TypeName> PersistentToLocal(
+    Isolate* isolate,
+    const Persistent<TypeName>& persistent) {
   if (persistent.IsWeak()) {
     return WeakPersistentToLocal(isolate, persistent);
   } else {
@@ -139,59 +142,59 @@ inline v8::Local<TypeName> PersistentToLocal(
 }
 
 template <class TypeName>
-inline v8::Local<TypeName> StrongPersistentToLocal(
-    const v8::Persistent<TypeName>& persistent) {
-  return *reinterpret_cast<v8::Local<TypeName>*>(
-      const_cast<v8::Persistent<TypeName>*>(&persistent));
+inline Local<TypeName> StrongPersistentToLocal(
+    const Persistent<TypeName>& persistent) {
+  return *reinterpret_cast<Local<TypeName>*>(
+      const_cast<Persistent<TypeName>*>(&persistent));
 }
 
 template <class TypeName>
-inline v8::Local<TypeName> WeakPersistentToLocal(
-    v8::Isolate* isolate,
-    const v8::Persistent<TypeName>& persistent) {
-  return v8::Local<TypeName>::New(isolate, persistent);
+inline Local<TypeName> WeakPersistentToLocal(
+    Isolate* isolate,
+    const Persistent<TypeName>& persistent) {
+  return Local<TypeName>::New(isolate, persistent);
 }
 
-inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
+inline Local<String> OneByteString(Isolate* isolate,
                                            const char* data,
                                            int length) {
-  return v8::String::NewFromOneByte(isolate,
+  return String::NewFromOneByte(isolate,
                                     reinterpret_cast<const uint8_t*>(data),
-                                    v8::NewStringType::kNormal,
+                                    NewStringType::kNormal,
                                     length).ToLocalChecked();
 }
 
-inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
+inline Local<String> OneByteString(Isolate* isolate,
                                            const signed char* data,
                                            int length) {
-  return v8::String::NewFromOneByte(isolate,
+  return String::NewFromOneByte(isolate,
                                     reinterpret_cast<const uint8_t*>(data),
-                                    v8::NewStringType::kNormal,
+                                    NewStringType::kNormal,
                                     length).ToLocalChecked();
 }
 
-inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
+inline Local<String> OneByteString(Isolate* isolate,
                                            const unsigned char* data,
                                            int length) {
-  return v8::String::NewFromOneByte(isolate,
+  return String::NewFromOneByte(isolate,
                                     reinterpret_cast<const uint8_t*>(data),
-                                    v8::NewStringType::kNormal,
+                                    NewStringType::kNormal,
                                     length).ToLocalChecked();
 }
 
 template <typename TypeName>
-void Wrap(v8::Local<v8::Object> object, TypeName* pointer) {
+void Wrap(Local<Object> object, TypeName* pointer) {
   CHECK_EQ(false, object.IsEmpty());
   CHECK_GT(object->InternalFieldCount(), 0);
   object->SetAlignedPointerInInternalField(0, pointer);
 }
 
-void ClearWrap(v8::Local<v8::Object> object) {
+void ClearWrap(Local<Object> object) {
   Wrap<void>(object, nullptr);
 }
 
 template <typename TypeName>
-TypeName* Unwrap(v8::Local<v8::Object> object) {
+TypeName* Unwrap(Local<Object> object) {
   CHECK_EQ(false, object.IsEmpty());
   CHECK_GT(object->InternalFieldCount(), 0);
   void* pointer = object->GetAlignedPointerFromInternalField(0);

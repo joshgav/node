@@ -1,14 +1,14 @@
 #include "node.h"
 #include "node_buffer.h"
 
+#include "node_ni.h"
+
 #include "env.h"
 #include "env-inl.h"
 #include "string_bytes.h"
 #include "string_search.h"
 #include "util.h"
 #include "util-inl.h"
-#include "v8-profiler.h"
-#include "v8.h"
 
 #include <string.h>
 #include <limits.h>
@@ -60,33 +60,12 @@
 
 namespace node {
 
+using namespace node::ni;
+
 // if true, all Buffer and SlowBuffer instances will automatically zero-fill
 bool zero_fill_all_buffers = false;
 
 namespace Buffer {
-
-using v8::ArrayBuffer;
-using v8::ArrayBufferCreationMode;
-using v8::Context;
-using v8::EscapableHandleScope;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Isolate;
-using v8::Local;
-using v8::Maybe;
-using v8::MaybeLocal;
-using v8::Number;
-using v8::Object;
-using v8::Persistent;
-using v8::String;
-using v8::Uint32;
-using v8::Uint32Array;
-using v8::Uint8Array;
-using v8::Value;
-using v8::WeakCallbackInfo;
 
 class CallbackInfo {
  public:
@@ -141,7 +120,7 @@ CallbackInfo::CallbackInfo(Isolate* isolate,
   if (object->ByteLength() != 0)
     CHECK_NE(data_, nullptr);
 
-  persistent_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kParameter);
+  persistent_.SetWeak(this, WeakCallback, WeakCallbackType::kParameter);
   persistent_.SetWrapperClassId(BUFFER_ID);
   persistent_.MarkIndependent();
   isolate->AdjustAmountOfExternalAllocatedMemory(sizeof(*this));
@@ -495,7 +474,7 @@ void StringSlice<UCS2>(const FunctionCallbackInfo<Value>& args) {
   // regarding Node's "ucs2" encoding specification.
   const bool aligned = (reinterpret_cast<uintptr_t>(data) % sizeof(*buf) == 0);
   if (IsLittleEndian() && !aligned) {
-    // Make a copy to avoid unaligned accesses in v8::String::NewFromTwoByte().
+    // Make a copy to avoid unaligned accesses in String::NewFromTwoByte().
     // This applies ONLY to little endian platforms, as misalignment will be
     // handled by a byte-swapping operation in StringBytes::Encode on
     // big endian platforms.

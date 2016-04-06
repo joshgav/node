@@ -4,15 +4,17 @@
 #include "async-wrap.h"
 #include "env.h"
 #include "util.h"
-#include "v8.h"
+#include "node_ni.h"
 
 namespace node {
+
+using namespace node::ni;
 
 template <typename T>
 class ReqWrap : public AsyncWrap {
  public:
   inline ReqWrap(Environment* env,
-                 v8::Local<v8::Object> object,
+                 Local<Object> object,
                  AsyncWrap::ProviderType provider);
   inline ~ReqWrap() override;
   inline void Dispatched();  // Call this after the req has been dispatched.

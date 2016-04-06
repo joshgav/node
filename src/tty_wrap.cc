@@ -10,21 +10,11 @@
 #include "stream_wrap.h"
 #include "util.h"
 #include "util-inl.h"
+#include "node_ni.h"
 
 namespace node {
 
-using v8::Array;
-using v8::Context;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::Integer;
-using v8::Local;
-using v8::Object;
-using v8::PropertyAttribute;
-using v8::String;
-using v8::Value;
-
+using namespace node::ni;
 
 void TTYWrap::Initialize(Local<Object> target,
                          Local<Value> unused,
@@ -97,7 +87,7 @@ void TTYWrap::GetWindowSize(const FunctionCallbackInfo<Value>& args) {
   int err = uv_tty_get_winsize(&wrap->handle_, &width, &height);
 
   if (err == 0) {
-    Local<v8::Array> a = args[0].As<Array>();
+    Local<Array> a = args[0].As<Array>();
     a->Set(0, Integer::New(env->isolate(), width));
     a->Set(1, Integer::New(env->isolate(), height));
   }

@@ -4,9 +4,12 @@
 #include "async-wrap.h"
 #include "util.h"
 #include "uv.h"
-#include "v8.h"
+
+#include "node_ni.h"
 
 namespace node {
+
+using namespace node::ni;
 
 class Environment;
 
@@ -18,7 +21,7 @@ class Environment;
 //   That is there can be no JavaScript stack frames underneath it.
 //   (Is there any way to assert that?)
 //
-// - No use of v8::WeakReferenceCallback. The close callback signifies that
+// - No use of WeakReferenceCallback. The close callback signifies that
 //   we're done with a handle - external resources can be freed.
 //
 // - Reusable?
@@ -32,9 +35,9 @@ class Environment;
 
 class HandleWrap : public AsyncWrap {
  public:
-  static void Close(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Ref(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Unref(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void Close(const FunctionCallbackInfo<Value>& args);
+  static void Ref(const FunctionCallbackInfo<Value>& args);
+  static void Unref(const FunctionCallbackInfo<Value>& args);
 
   static inline bool IsAlive(const HandleWrap* wrap) {
     return wrap != nullptr && wrap->GetHandle() != nullptr;
@@ -44,7 +47,7 @@ class HandleWrap : public AsyncWrap {
 
  protected:
   HandleWrap(Environment* env,
-             v8::Local<v8::Object> object,
+             Local<Object> object,
              uv_handle_t* handle,
              AsyncWrap::ProviderType provider,
              AsyncWrap* parent = nullptr);
@@ -52,7 +55,7 @@ class HandleWrap : public AsyncWrap {
 
  private:
   friend class Environment;
-  friend void GetActiveHandles(const v8::FunctionCallbackInfo<v8::Value>&);
+  friend void GetActiveHandles(const FunctionCallbackInfo<Value>&);
   static void OnClose(uv_handle_t* handle);
   ListNode<HandleWrap> handle_wrap_queue_;
   unsigned int flags_;

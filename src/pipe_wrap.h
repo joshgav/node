@@ -5,34 +5,38 @@
 #include "env.h"
 #include "stream_wrap.h"
 
+#include "node_ni.h"
+
 namespace node {
+
+using namespace node::ni;
 
 class PipeWrap : public StreamWrap {
  public:
   uv_pipe_t* UVHandle();
 
-  static v8::Local<v8::Object> Instantiate(Environment* env, AsyncWrap* parent);
-  static void Initialize(v8::Local<v8::Object> target,
-                         v8::Local<v8::Value> unused,
-                         v8::Local<v8::Context> context);
+  static Local<Object> Instantiate(Environment* env, AsyncWrap* parent);
+  static void Initialize(Local<Object> target,
+                         Local<Value> unused,
+                         Local<Context> context);
 
   size_t self_size() const override { return sizeof(*this); }
 
  private:
   PipeWrap(Environment* env,
-           v8::Local<v8::Object> object,
+           Local<Object> object,
            bool ipc,
            AsyncWrap* parent);
 
-  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Bind(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Listen(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Connect(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Open(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void New(const FunctionCallbackInfo<Value>& args);
+  static void Bind(const FunctionCallbackInfo<Value>& args);
+  static void Listen(const FunctionCallbackInfo<Value>& args);
+  static void Connect(const FunctionCallbackInfo<Value>& args);
+  static void Open(const FunctionCallbackInfo<Value>& args);
 
 #ifdef _WIN32
   static void SetPendingInstances(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
 #endif
 
   static void OnConnection(uv_stream_t* handle, int status);

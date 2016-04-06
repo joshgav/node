@@ -2,7 +2,7 @@
 #define SRC_NODE_CONSTANTS_H_
 
 #include "node.h"
-#include "v8.h"
+#include "node_ni.h"
 
 #if HAVE_OPENSSL
 #define DEFAULT_CIPHER_LIST_CORE "ECDHE-RSA-AES128-GCM-SHA256:"     \
@@ -30,11 +30,13 @@
 
 namespace node {
 
+using namespace node::ni;
+
 #if HAVE_OPENSSL
 extern const char* default_cipher_list;
 #endif
 
-void DefineConstants(v8::Local<v8::Object> target);
+void DefineConstants(Local<Object> target);
 }  // namespace node
 
 #endif  // SRC_NODE_CONSTANTS_H_

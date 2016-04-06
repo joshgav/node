@@ -7,46 +7,12 @@
 #include "env-inl.h"
 #include "util.h"
 #include "util-inl.h"
-#include "v8-debug.h"
+
+#include "node_ni.h"
 
 namespace node {
 
-using v8::AccessType;
-using v8::Array;
-using v8::ArrayBuffer;
-using v8::Boolean;
-using v8::Context;
-using v8::Debug;
-using v8::EscapableHandleScope;
-using v8::External;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Isolate;
-using v8::Local;
-using v8::Maybe;
-using v8::MaybeLocal;
-using v8::Name;
-using v8::NamedPropertyHandlerConfiguration;
-using v8::None;
-using v8::Object;
-using v8::ObjectTemplate;
-using v8::Persistent;
-using v8::PropertyAttribute;
-using v8::PropertyCallbackInfo;
-using v8::Script;
-using v8::ScriptCompiler;
-using v8::ScriptOrigin;
-using v8::String;
-using v8::TryCatch;
-using v8::Uint8Array;
-using v8::UnboundScript;
-using v8::V8;
-using v8::Value;
-using v8::WeakCallbackInfo;
-
+using namespace node::ni;
 
 class ContextifyContext {
  protected:
@@ -65,7 +31,7 @@ class ContextifyContext {
     // Allocation failure or maximum call stack size reached
     if (context_.IsEmpty())
       return;
-    context_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kParameter);
+    context_.SetWeak(this, WeakCallback, WeakCallbackType::kParameter);
     context_.MarkIndependent();
   }
 

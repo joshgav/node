@@ -1,18 +1,12 @@
 #include "node.h"
-#include "v8.h"
 #include "env.h"
 #include "env-inl.h"
+#include "node_ni.h"
 
 namespace node {
 namespace util {
 
-using v8::Context;
-using v8::FunctionCallbackInfo;
-using v8::Local;
-using v8::Object;
-using v8::Private;
-using v8::String;
-using v8::Value;
+using namespace node::ni;
 
 
 #define VALUE_METHOD_MAP(V)                                                   \

@@ -2,11 +2,14 @@
 #define SRC_NODE_FILE_H_
 
 #include "node.h"
-#include "v8.h"
+#include "node_ni.h"
+
 
 namespace node {
 
-void InitFs(v8::Local<v8::Object> target);
+using namespace node::ni;
+
+void InitFs(Local<Object> target);
 
 }  // namespace node
 

@@ -3,6 +3,7 @@
 
 #include "node_win32_etw_provider.h"
 #include "node_etw_provider.h"
+#include "node_ni.h"
 
 #if defined(_WIN64)
 # define ETW_WRITE_INTPTR_DATA ETW_WRITE_INT64_DATA
@@ -11,6 +12,8 @@
 #endif
 
 namespace node {
+
+using namespace node::ni;
 
 // From node_win32_etw_provider.cc
 extern REGHANDLE node_provider;
@@ -154,9 +157,9 @@ void NODE_NET_STREAM_END(node_dtrace_connection_t* conn,
 }
 
 
-void NODE_GC_START(v8::GCType type,
-                   v8::GCCallbackFlags flags,
-                   v8::Isolate* isolate) {
+void NODE_GC_START(GCType type,
+                   GCCallbackFlags flags,
+                   Isolate* isolate) {
   if (events_enabled > 0) {
     EVENT_DATA_DESCRIPTOR descriptors[2];
     ETW_WRITE_GC(descriptors, type, flags);
@@ -165,9 +168,9 @@ void NODE_GC_START(v8::GCType type,
 }
 
 
-void NODE_GC_DONE(v8::GCType type,
-                  v8::GCCallbackFlags flags,
-                  v8::Isolate* isolate) {
+void NODE_GC_DONE(GCType type,
+                  GCCallbackFlags flags,
+                  Isolate* isolate) {
   if (events_enabled > 0) {
     EVENT_DATA_DESCRIPTOR descriptors[2];
     ETW_WRITE_GC(descriptors, type, flags);

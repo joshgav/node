@@ -6,20 +6,23 @@
 #include "util.h"
 #include "util-inl.h"
 #include "uv.h"
-#include "v8.h"
+
+#include "node_ni.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
 namespace node {
 
+using namespace node::ni;
+
 inline Environment::IsolateData* Environment::IsolateData::Get(
-    v8::Isolate* isolate) {
+    Isolate* isolate) {
   return static_cast<IsolateData*>(isolate->GetData(kIsolateSlot));
 }
 
 inline Environment::IsolateData* Environment::IsolateData::GetOrCreate(
-    v8::Isolate* isolate, uv_loop_t* loop) {
+    Isolate* isolate, uv_loop_t* loop) {
   IsolateData* isolate_data = Get(isolate);
   if (isolate_data == nullptr) {
     isolate_data = new IsolateData(isolate, loop);
@@ -41,33 +44,33 @@ inline void Environment::IsolateData::Put() {
 // Internalized because it makes property lookups a little faster and because
 // the string is created in the old space straight away.  It's going to end up
 // in the old space sooner or later anyway but now it doesn't go through
-// v8::Eternal's new space handling first.
+// Eternal's new space handling first.
 //
 // One byte because our strings are ASCII and we can safely skip V8's UTF-8
 // decoding step.  It's a one-time cost, but why pay it when you don't have to?
-inline Environment::IsolateData::IsolateData(v8::Isolate* isolate,
+inline Environment::IsolateData::IsolateData(Isolate* isolate,
                                              uv_loop_t* loop)
     : event_loop_(loop),
       isolate_(isolate),
 #define V(PropertyName, StringValue)                                          \
     PropertyName ## _(                                                        \
         isolate,                                                              \
-        v8::Private::ForApi(                                                  \
+        Private::ForApi(                                                  \
             isolate,                                                          \
-            v8::String::NewFromOneByte(                                       \
+            String::NewFromOneByte(                                       \
                 isolate,                                                      \
                 reinterpret_cast<const uint8_t*>(StringValue),                \
-                v8::NewStringType::kInternalized,                             \
+                NewStringType::kInternalized,                             \
                 sizeof(StringValue) - 1).ToLocalChecked())),
   PER_ISOLATE_PRIVATE_SYMBOL_PROPERTIES(V)
 #undef V
 #define V(PropertyName, StringValue)                                          \
     PropertyName ## _(                                                        \
         isolate,                                                              \
-        v8::String::NewFromOneByte(                                           \
+        String::NewFromOneByte(                                           \
             isolate,                                                          \
             reinterpret_cast<const uint8_t*>(StringValue),                    \
-            v8::NewStringType::kInternalized,                                 \
+            NewStringType::kInternalized,                                 \
             sizeof(StringValue) - 1).ToLocalChecked()),
     PER_ISOLATE_STRING_PROPERTIES(V)
 #undef V
@@ -77,7 +80,7 @@ inline uv_loop_t* Environment::IsolateData::event_loop() const {
   return event_loop_;
 }
 
-inline v8::Isolate* Environment::IsolateData::isolate() const {
+inline Isolate* Environment::IsolateData::isolate() const {
   return isolate_;
 }
 
@@ -176,43 +179,43 @@ inline void Environment::ArrayBufferAllocatorInfo::reset_fill_flag() {
   fields_[kNoZeroFill] = 0;
 }
 
-inline Environment* Environment::New(v8::Local<v8::Context> context,
+inline Environment* Environment::New(Local<Context> context,
                                      uv_loop_t* loop) {
   Environment* env = new Environment(context, loop);
   env->AssignToContext(context);
   return env;
 }
 
-inline void Environment::AssignToContext(v8::Local<v8::Context> context) {
+inline void Environment::AssignToContext(Local<Context> context) {
   context->SetAlignedPointerInEmbedderData(kContextEmbedderDataIndex, this);
 }
 
-inline Environment* Environment::GetCurrent(v8::Isolate* isolate) {
+inline Environment* Environment::GetCurrent(Isolate* isolate) {
   return GetCurrent(isolate->GetCurrentContext());
 }
 
-inline Environment* Environment::GetCurrent(v8::Local<v8::Context> context) {
+inline Environment* Environment::GetCurrent(Local<Context> context) {
   return static_cast<Environment*>(
       context->GetAlignedPointerFromEmbedderData(kContextEmbedderDataIndex));
 }
 
 inline Environment* Environment::GetCurrent(
-    const v8::FunctionCallbackInfo<v8::Value>& info) {
+    const FunctionCallbackInfo<Value>& info) {
   ASSERT(info.Data()->IsExternal());
-  return static_cast<Environment*>(info.Data().As<v8::External>()->Value());
+  return static_cast<Environment*>(info.Data().As<External>()->Value());
 }
 
 template <typename T>
 inline Environment* Environment::GetCurrent(
-    const v8::PropertyCallbackInfo<T>& info) {
+    const PropertyCallbackInfo<T>& info) {
   ASSERT(info.Data()->IsExternal());
   // XXX(bnoordhuis) Work around a g++ 4.9.2 template type inferrer bug
-  // when the expression is written as info.Data().As<v8::External>().
-  v8::Local<v8::Value> data = info.Data();
-  return static_cast<Environment*>(data.As<v8::External>()->Value());
+  // when the expression is written as info.Data().As<External>().
+  Local<Value> data = info.Data();
+  return static_cast<Environment*>(data.As<External>()->Value());
 }
 
-inline Environment::Environment(v8::Local<v8::Context> context,
+inline Environment::Environment(Local<Context> context,
                                 uv_loop_t* loop)
     : isolate_(context->GetIsolate()),
       isolate_data_(IsolateData::GetOrCreate(context->GetIsolate(), loop)),
@@ -226,15 +229,15 @@ inline Environment::Environment(v8::Local<v8::Context> context,
       http_parser_buffer_(nullptr),
       context_(context->GetIsolate(), context) {
   // We'll be creating new objects so make sure we've entered the context.
-  v8::HandleScope handle_scope(isolate());
-  v8::Context::Scope context_scope(context);
-  set_as_external(v8::External::New(isolate(), this));
-  set_binding_cache_object(v8::Object::New(isolate()));
-  set_module_load_list_array(v8::Array::New(isolate()));
+  HandleScope handle_scope(isolate());
+  Context::Scope context_scope(context);
+  set_as_external(External::New(isolate(), this));
+  set_binding_cache_object(Object::New(isolate()));
+  set_module_load_list_array(Array::New(isolate()));
 
-  v8::Local<v8::FunctionTemplate> fn = v8::FunctionTemplate::New(isolate());
+  Local<FunctionTemplate> fn = FunctionTemplate::New(isolate());
   fn->SetClassName(FIXED_ONE_BYTE_STRING(isolate(), "InternalFieldObject"));
-  v8::Local<v8::ObjectTemplate> obj = fn->InstanceTemplate();
+  Local<ObjectTemplate> obj = fn->InstanceTemplate();
   obj->SetInternalFieldCount(1);
   set_generic_internal_field_template(obj);
 
@@ -243,7 +246,7 @@ inline Environment::Environment(v8::Local<v8::Context> context,
 }
 
 inline Environment::~Environment() {
-  v8::HandleScope handle_scope(isolate());
+  HandleScope handle_scope(isolate());
 
   context()->SetAlignedPointerInEmbedderData(kContextEmbedderDataIndex,
                                              nullptr);
@@ -272,7 +275,7 @@ inline void Environment::Dispose() {
   delete this;
 }
 
-inline v8::Isolate* Environment::isolate() const {
+inline Isolate* Environment::isolate() const {
   return isolate_;
 }
 
@@ -435,23 +438,23 @@ inline Environment::IsolateData* Environment::isolate_data() const {
 // sometimes fails to resolve it...
 #define THROW_ERROR(fun)                                                      \
   do {                                                                        \
-    v8::HandleScope scope(isolate);                                           \
+    HandleScope scope(isolate);                                           \
     isolate->ThrowException(fun(OneByteString(isolate, errmsg)));             \
   }                                                                           \
   while (0)
 
-inline void Environment::ThrowError(v8::Isolate* isolate, const char* errmsg) {
-  THROW_ERROR(v8::Exception::Error);
+inline void Environment::ThrowError(Isolate* isolate, const char* errmsg) {
+  THROW_ERROR(Exception::Error);
 }
 
-inline void Environment::ThrowTypeError(v8::Isolate* isolate,
+inline void Environment::ThrowTypeError(Isolate* isolate,
                                         const char* errmsg) {
-  THROW_ERROR(v8::Exception::TypeError);
+  THROW_ERROR(Exception::TypeError);
 }
 
-inline void Environment::ThrowRangeError(v8::Isolate* isolate,
+inline void Environment::ThrowRangeError(Isolate* isolate,
                                          const char* errmsg) {
-  THROW_ERROR(v8::Exception::RangeError);
+  THROW_ERROR(Exception::RangeError);
 }
 
 inline void Environment::ThrowError(const char* errmsg) {
@@ -483,64 +486,64 @@ inline void Environment::ThrowUVException(int errorno,
       UVException(isolate(), errorno, syscall, message, path, dest));
 }
 
-inline v8::Local<v8::FunctionTemplate>
-    Environment::NewFunctionTemplate(v8::FunctionCallback callback,
-                                     v8::Local<v8::Signature> signature) {
-  v8::Local<v8::External> external = as_external();
-  return v8::FunctionTemplate::New(isolate(), callback, external, signature);
+inline Local<FunctionTemplate>
+    Environment::NewFunctionTemplate(FunctionCallback callback,
+                                     Local<Signature> signature) {
+  Local<External> external = as_external();
+  return FunctionTemplate::New(isolate(), callback, external, signature);
 }
 
-inline void Environment::SetMethod(v8::Local<v8::Object> that,
+inline void Environment::SetMethod(Local<Object> that,
                                    const char* name,
-                                   v8::FunctionCallback callback) {
-  v8::Local<v8::Function> function =
+                                   FunctionCallback callback) {
+  Local<Function> function =
       NewFunctionTemplate(callback)->GetFunction();
   // kInternalized strings are created in the old space.
-  const v8::NewStringType type = v8::NewStringType::kInternalized;
-  v8::Local<v8::String> name_string =
-      v8::String::NewFromUtf8(isolate(), name, type).ToLocalChecked();
+  const NewStringType type = NewStringType::kInternalized;
+  Local<String> name_string =
+      String::NewFromUtf8(isolate(), name, type).ToLocalChecked();
   that->Set(name_string, function);
   function->SetName(name_string);  // NODE_SET_METHOD() compatibility.
 }
 
-inline void Environment::SetProtoMethod(v8::Local<v8::FunctionTemplate> that,
+inline void Environment::SetProtoMethod(Local<FunctionTemplate> that,
                                         const char* name,
-                                        v8::FunctionCallback callback) {
-  v8::Local<v8::Signature> signature = v8::Signature::New(isolate(), that);
-  v8::Local<v8::Function> function =
+                                        FunctionCallback callback) {
+  Local<Signature> signature = Signature::New(isolate(), that);
+  Local<Function> function =
       NewFunctionTemplate(callback, signature)->GetFunction();
   // kInternalized strings are created in the old space.
-  const v8::NewStringType type = v8::NewStringType::kInternalized;
-  v8::Local<v8::String> name_string =
-      v8::String::NewFromUtf8(isolate(), name, type).ToLocalChecked();
+  const NewStringType type = NewStringType::kInternalized;
+  Local<String> name_string =
+      String::NewFromUtf8(isolate(), name, type).ToLocalChecked();
   that->PrototypeTemplate()->Set(name_string, function);
   function->SetName(name_string);  // NODE_SET_PROTOTYPE_METHOD() compatibility.
 }
 
-inline void Environment::SetTemplateMethod(v8::Local<v8::FunctionTemplate> that,
+inline void Environment::SetTemplateMethod(Local<FunctionTemplate> that,
                                            const char* name,
-                                           v8::FunctionCallback callback) {
-  v8::Local<v8::Function> function =
+                                           FunctionCallback callback) {
+  Local<Function> function =
       NewFunctionTemplate(callback)->GetFunction();
   // kInternalized strings are created in the old space.
-  const v8::NewStringType type = v8::NewStringType::kInternalized;
-  v8::Local<v8::String> name_string =
-      v8::String::NewFromUtf8(isolate(), name, type).ToLocalChecked();
+  const NewStringType type = NewStringType::kInternalized;
+  Local<String> name_string =
+      String::NewFromUtf8(isolate(), name, type).ToLocalChecked();
   that->Set(name_string, function);
   function->SetName(name_string);  // NODE_SET_METHOD() compatibility.
 }
 
-inline v8::Local<v8::Object> Environment::NewInternalFieldObject() {
-  v8::MaybeLocal<v8::Object> m_obj =
+inline Local<Object> Environment::NewInternalFieldObject() {
+  MaybeLocal<Object> m_obj =
       generic_internal_field_template()->NewInstance(context());
   return m_obj.ToLocalChecked();
 }
 
-#define VP(PropertyName, StringValue) V(v8::Private, PropertyName, StringValue)
-#define VS(PropertyName, StringValue) V(v8::String, PropertyName, StringValue)
+#define VP(PropertyName, StringValue) V(Private, PropertyName, StringValue)
+#define VS(PropertyName, StringValue) V(String, PropertyName, StringValue)
 #define V(TypeName, PropertyName, StringValue)                                \
   inline                                                                      \
-  v8::Local<TypeName> Environment::IsolateData::PropertyName() const {        \
+  Local<TypeName> Environment::IsolateData::PropertyName() const {        \
     /* Strings are immutable so casting away const-ness here is okay. */      \
     return const_cast<IsolateData*>(this)->PropertyName ## _.Get(isolate());  \
   }
@@ -550,10 +553,10 @@ inline v8::Local<v8::Object> Environment::NewInternalFieldObject() {
 #undef VS
 #undef VP
 
-#define VP(PropertyName, StringValue) V(v8::Private, PropertyName, StringValue)
-#define VS(PropertyName, StringValue) V(v8::String, PropertyName, StringValue)
+#define VP(PropertyName, StringValue) V(Private, PropertyName, StringValue)
+#define VS(PropertyName, StringValue) V(String, PropertyName, StringValue)
 #define V(TypeName, PropertyName, StringValue)                                \
-  inline v8::Local<TypeName> Environment::PropertyName() const {              \
+  inline Local<TypeName> Environment::PropertyName() const {              \
     return isolate_data()->PropertyName();                                    \
   }
   PER_ISOLATE_PRIVATE_SYMBOL_PROPERTIES(VP)
@@ -563,10 +566,10 @@ inline v8::Local<v8::Object> Environment::NewInternalFieldObject() {
 #undef VP
 
 #define V(PropertyName, TypeName)                                             \
-  inline v8::Local<TypeName> Environment::PropertyName() const {              \
+  inline Local<TypeName> Environment::PropertyName() const {              \
     return StrongPersistentToLocal(PropertyName ## _);                        \
   }                                                                           \
-  inline void Environment::set_ ## PropertyName(v8::Local<TypeName> value) {  \
+  inline void Environment::set_ ## PropertyName(Local<TypeName> value) {  \
     PropertyName ## _.Reset(isolate(), value);                                \
   }
   ENVIRONMENT_STRONG_PERSISTENT_PROPERTIES(V)

@@ -4,15 +4,18 @@
 #include "async-wrap.h"
 #include "env.h"
 #include "stream_base.h"
-#include "v8.h"
+
+#include "node_ni.h"
 
 namespace node {
 
+using namespace node::ni;
+
 class JSStream : public StreamBase, public AsyncWrap {
  public:
-  static void Initialize(v8::Local<v8::Object> target,
-                         v8::Local<v8::Value> unused,
-                         v8::Local<v8::Context> context);
+  static void Initialize(Local<Object> target,
+                         Local<Value> unused,
+                         Local<Context> context);
 
   ~JSStream();
 
@@ -31,19 +34,19 @@ class JSStream : public StreamBase, public AsyncWrap {
   size_t self_size() const override { return sizeof(*this); }
 
  protected:
-  JSStream(Environment* env, v8::Local<v8::Object> obj, AsyncWrap* parent);
+  JSStream(Environment* env, Local<Object> obj, AsyncWrap* parent);
 
   AsyncWrap* GetAsyncWrap() override;
 
-  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void DoAlloc(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void DoRead(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void DoAfterWrite(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void ReadBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void EmitEOF(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void New(const FunctionCallbackInfo<Value>& args);
+  static void DoAlloc(const FunctionCallbackInfo<Value>& args);
+  static void DoRead(const FunctionCallbackInfo<Value>& args);
+  static void DoAfterWrite(const FunctionCallbackInfo<Value>& args);
+  static void ReadBuffer(const FunctionCallbackInfo<Value>& args);
+  static void EmitEOF(const FunctionCallbackInfo<Value>& args);
 
   template <class Wrap>
-  static void Finish(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void Finish(const FunctionCallbackInfo<Value>& args);
 };
 
 }  // namespace node

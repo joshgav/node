@@ -7,9 +7,12 @@
 #include "req-wrap-inl.h"
 #include "node.h"
 
-#include "v8.h"
+#include "node_ni.h"
+
 
 namespace node {
+
+using namespace node::ni;
 
 // Forward declarations
 class StreamBase;
@@ -41,7 +44,7 @@ class ShutdownWrap : public ReqWrap<uv_shutdown_t>,
                      public StreamReq<ShutdownWrap> {
  public:
   ShutdownWrap(Environment* env,
-               v8::Local<v8::Object> req_wrap_obj,
+               Local<Object> req_wrap_obj,
                StreamBase* wrap,
                DoneCb cb)
       : ReqWrap(env, req_wrap_obj, AsyncWrap::PROVIDER_SHUTDOWNWRAP),
@@ -50,7 +53,7 @@ class ShutdownWrap : public ReqWrap<uv_shutdown_t>,
     Wrap(req_wrap_obj, this);
   }
 
-  static void NewShutdownWrap(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  static void NewShutdownWrap(const FunctionCallbackInfo<Value>& args) {
     CHECK(args.IsConstructCall());
   }
 
@@ -65,7 +68,7 @@ class WriteWrap: public ReqWrap<uv_write_t>,
                  public StreamReq<WriteWrap> {
  public:
   static inline WriteWrap* New(Environment* env,
-                               v8::Local<v8::Object> obj,
+                               Local<Object> obj,
                                StreamBase* wrap,
                                DoneCb cb,
                                size_t extra = 0);
@@ -76,7 +79,7 @@ class WriteWrap: public ReqWrap<uv_write_t>,
 
   size_t self_size() const override { return storage_size_; }
 
-  static void NewWriteWrap(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  static void NewWriteWrap(const FunctionCallbackInfo<Value>& args) {
     CHECK(args.IsConstructCall());
   }
 
@@ -84,7 +87,7 @@ class WriteWrap: public ReqWrap<uv_write_t>,
 
  protected:
   WriteWrap(Environment* env,
-            v8::Local<v8::Object> obj,
+            Local<Object> obj,
             StreamBase* wrap,
             DoneCb cb,
             size_t storage_size)
@@ -194,7 +197,7 @@ class StreamBase : public StreamResource {
 
   template <class Base>
   static inline void AddMethods(Environment* env,
-                                v8::Local<v8::FunctionTemplate> target,
+                                Local<FunctionTemplate> target,
                                 int flags = kFlagNone);
 
   virtual void* Cast() = 0;
@@ -215,8 +218,8 @@ class StreamBase : public StreamResource {
   inline Outer* Cast() { return static_cast<Outer*>(Cast()); }
 
   void EmitData(ssize_t nread,
-                v8::Local<v8::Object> buf,
-                v8::Local<v8::Object> handle);
+                Local<Object> buf,
+                Local<Object> handle);
 
  protected:
   explicit StreamBase(Environment* env) : env_(env), consumed_(false) {
@@ -226,33 +229,33 @@ class StreamBase : public StreamResource {
 
   // One of these must be implemented
   virtual AsyncWrap* GetAsyncWrap();
-  virtual v8::Local<v8::Object> GetObject();
+  virtual Local<Object> GetObject();
 
   // Libuv callbacks
   static void AfterShutdown(ShutdownWrap* req, int status);
   static void AfterWrite(WriteWrap* req, int status);
 
   // JS Methods
-  int ReadStart(const v8::FunctionCallbackInfo<v8::Value>& args);
-  int ReadStop(const v8::FunctionCallbackInfo<v8::Value>& args);
-  int Shutdown(const v8::FunctionCallbackInfo<v8::Value>& args);
-  int Writev(const v8::FunctionCallbackInfo<v8::Value>& args);
-  int WriteBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+  int ReadStart(const FunctionCallbackInfo<Value>& args);
+  int ReadStop(const FunctionCallbackInfo<Value>& args);
+  int Shutdown(const FunctionCallbackInfo<Value>& args);
+  int Writev(const FunctionCallbackInfo<Value>& args);
+  int WriteBuffer(const FunctionCallbackInfo<Value>& args);
   template <enum encoding enc>
-  int WriteString(const v8::FunctionCallbackInfo<v8::Value>& args);
+  int WriteString(const FunctionCallbackInfo<Value>& args);
 
   template <class Base>
-  static void GetFD(v8::Local<v8::String> key,
-                    const v8::PropertyCallbackInfo<v8::Value>& args);
+  static void GetFD(Local<String> key,
+                    const PropertyCallbackInfo<Value>& args);
 
   template <class Base>
-  static void GetExternal(v8::Local<v8::String> key,
-                          const v8::PropertyCallbackInfo<v8::Value>& args);
+  static void GetExternal(Local<String> key,
+                          const PropertyCallbackInfo<Value>& args);
 
   template <class Base,
             int (StreamBase::*Method)(  // NOLINT(whitespace/parens)
-      const v8::FunctionCallbackInfo<v8::Value>& args)>
-  static void JSMethod(const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args)>
+  static void JSMethod(const FunctionCallbackInfo<Value>& args);
 
  private:
   Environment* env_;

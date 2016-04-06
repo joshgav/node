@@ -1,7 +1,8 @@
 #include "node.h"
-#include "v8.h"
 #include "env.h"
 #include "env-inl.h"
+
+#include "node_ni.h"
 
 #include <errno.h>
 #include <string.h>
@@ -26,16 +27,7 @@
 namespace node {
 namespace os {
 
-using v8::Array;
-using v8::Boolean;
-using v8::Context;
-using v8::FunctionCallbackInfo;
-using v8::Integer;
-using v8::Local;
-using v8::Number;
-using v8::Object;
-using v8::String;
-using v8::Value;
+using namespace node::ni;
 
 
 static void GetHostname(const FunctionCallbackInfo<Value>& args) {

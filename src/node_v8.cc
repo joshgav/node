@@ -3,26 +3,11 @@
 #include "env-inl.h"
 #include "util.h"
 #include "util-inl.h"
-#include "v8.h"
+#include "node_ni.h"
 
 namespace node {
 
-using v8::Array;
-using v8::ArrayBuffer;
-using v8::Context;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::HeapSpaceStatistics;
-using v8::HeapStatistics;
-using v8::Isolate;
-using v8::Local;
-using v8::NewStringType;
-using v8::Object;
-using v8::String;
-using v8::Uint32;
-using v8::Uint32Array;
-using v8::V8;
-using v8::Value;
+using namespace node::ni;
 
 #define HEAP_STATISTICS_PROPERTIES(V)                                         \
   V(0, total_heap_size, kTotalHeapSizeIndex)                                  \

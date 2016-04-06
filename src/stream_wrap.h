@@ -6,18 +6,20 @@
 #include "env.h"
 #include "handle_wrap.h"
 #include "string_bytes.h"
-#include "v8.h"
+#include "node_ni.h"
 
 namespace node {
+
+using namespace node::ni;
 
 // Forward declaration
 class StreamWrap;
 
 class StreamWrap : public HandleWrap, public StreamBase {
  public:
-  static void Initialize(v8::Local<v8::Object> target,
-                         v8::Local<v8::Value> unused,
-                         v8::Local<v8::Context> context);
+  static void Initialize(Local<Object> target,
+                         Local<Value> unused,
+                         Local<Context> context);
 
   int GetFD() override;
   void* Cast() override;
@@ -56,7 +58,7 @@ class StreamWrap : public HandleWrap, public StreamBase {
 
  protected:
   StreamWrap(Environment* env,
-             v8::Local<v8::Object> object,
+             Local<Object> object,
              uv_stream_t* stream,
              AsyncWrap::ProviderType provider,
              AsyncWrap* parent = nullptr);
@@ -68,11 +70,11 @@ class StreamWrap : public HandleWrap, public StreamBase {
   void UpdateWriteQueueSize();
 
   static void AddMethods(Environment* env,
-                         v8::Local<v8::FunctionTemplate> target,
+                         Local<FunctionTemplate> target,
                          int flags = StreamBase::kFlagNone);
 
  private:
-  static void SetBlocking(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void SetBlocking(const FunctionCallbackInfo<Value>& args);
 
   // Callbacks for libuv
   static void OnAlloc(uv_handle_t* handle,

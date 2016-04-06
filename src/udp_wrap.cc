@@ -7,29 +7,14 @@
 #include "req-wrap-inl.h"
 #include "util.h"
 #include "util-inl.h"
+#include "node_ni.h"
 
 #include <stdlib.h>
 
 
 namespace node {
 
-using v8::Array;
-using v8::Context;
-using v8::EscapableHandleScope;
-using v8::External;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Local;
-using v8::Object;
-using v8::PropertyAttribute;
-using v8::PropertyCallbackInfo;
-using v8::String;
-using v8::Uint32;
-using v8::Undefined;
-using v8::Value;
+using namespace node::ni;
 
 
 class SendWrap : public ReqWrap<uv_udp_send_t> {
@@ -82,12 +67,12 @@ void UDPWrap::Initialize(Local<Object> target,
   t->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "UDP"));
 
   enum PropertyAttribute attributes =
-      static_cast<PropertyAttribute>(v8::ReadOnly | v8::DontDelete);
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete);
   t->InstanceTemplate()->SetAccessor(env->fd_string(),
                                      UDPWrap::GetFD,
                                      nullptr,
                                      env->as_external(),
-                                     v8::DEFAULT,
+                                     DEFAULT,
                                      attributes);
 
   env->SetProtoMethod(t, "bind", Bind);

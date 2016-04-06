@@ -1,4 +1,5 @@
 #include "node_constants.h"
+#include "node_ni.h"
 
 #include "uv.h"
 
@@ -21,8 +22,7 @@
 
 namespace node {
 
-using v8::Local;
-using v8::Object;
+using namespace node::ni;
 
 #if HAVE_OPENSSL
 const char* default_cipher_list = DEFAULT_CIPHER_LIST_CORE;

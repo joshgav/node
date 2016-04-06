@@ -12,24 +12,14 @@
 #include "stream_base-inl.h"
 #include "util.h"
 #include "util-inl.h"
+#include "node_ni.h"
 
 namespace node {
 
+using namespace node::ni;
+
 using crypto::SSLWrap;
 using crypto::SecureContext;
-using v8::Boolean;
-using v8::Context;
-using v8::EscapableHandleScope;
-using v8::Exception;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::Integer;
-using v8::Local;
-using v8::Null;
-using v8::Object;
-using v8::String;
-using v8::Value;
 
 TLSWrap::TLSWrap(Environment* env,
                  Kind kind,

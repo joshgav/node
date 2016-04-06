@@ -16,23 +16,6 @@
 
 namespace node {
 
-using v8::Boolean;
-using v8::Context;
-using v8::EscapableHandleScope;
-using v8::External;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Local;
-using v8::Object;
-using v8::PropertyAttribute;
-using v8::String;
-using v8::Undefined;
-using v8::Value;
-
-
 class TCPConnectWrap : public ReqWrap<uv_connect_t> {
  public:
   TCPConnectWrap(Environment* env, Local<Object> req_wrap_obj);
@@ -291,8 +274,8 @@ void TCPWrap::AfterConnect(uv_connect_t* req, int status) {
     Integer::New(env->isolate(), status),
     wrap->object(),
     req_wrap_obj,
-    v8::True(env->isolate()),
-    v8::True(env->isolate())
+    True(env->isolate()),
+    True(env->isolate())
   };
 
   req_wrap->MakeCallback(env->oncomplete_string(), arraysize(argv), argv);

@@ -8,12 +8,15 @@
 #include "env-inl.h"
 #include "util.h"
 #include "util-inl.h"
+#include "node_ni.h"
 
 namespace node {
 
+using namespace node::ni;
+
 template <typename T>
 ReqWrap<T>::ReqWrap(Environment* env,
-                    v8::Local<v8::Object> object,
+                    Local<Object> object,
                     AsyncWrap::ProviderType provider)
     : AsyncWrap(env, object, provider) {
   if (env->in_domain())

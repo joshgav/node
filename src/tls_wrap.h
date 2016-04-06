@@ -8,11 +8,13 @@
 #include "env.h"
 #include "stream_wrap.h"
 #include "util.h"
-#include "v8.h"
+#include "node_ni.h"
 
 #include <openssl/ssl.h>
 
 namespace node {
+
+using namespace node::ni;
 
 // Forward-declarations
 class NodeBIO;
@@ -27,9 +29,9 @@ class TLSWrap : public AsyncWrap,
  public:
   ~TLSWrap() override;
 
-  static void Initialize(v8::Local<v8::Object> target,
-                         v8::Local<v8::Value> unused,
-                         v8::Local<v8::Context> context);
+  static void Initialize(Local<Object> target,
+                         Local<Value> unused,
+                         Local<Context> context);
 
   void* Cast() override;
   int GetFD() override;
@@ -123,22 +125,22 @@ class TLSWrap : public AsyncWrap,
   void DoRead(ssize_t nread, const uv_buf_t* buf, uv_handle_type pending);
 
   // If |msg| is not nullptr, caller is responsible for calling `delete[] *msg`.
-  v8::Local<v8::Value> GetSSLError(int status, int* err, const char** msg);
+  Local<Value> GetSSLError(int status, int* err, const char** msg);
 
   static void OnClientHelloParseEnd(void* arg);
-  static void Wrap(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Receive(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void Start(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetVerifyMode(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void Wrap(const FunctionCallbackInfo<Value>& args);
+  static void Receive(const FunctionCallbackInfo<Value>& args);
+  static void Start(const FunctionCallbackInfo<Value>& args);
+  static void SetVerifyMode(const FunctionCallbackInfo<Value>& args);
   static void EnableSessionCallbacks(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
   static void EnableCertCb(
-      const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void DestroySSL(const v8::FunctionCallbackInfo<v8::Value>& args);
+      const FunctionCallbackInfo<Value>& args);
+  static void DestroySSL(const FunctionCallbackInfo<Value>& args);
 
 #ifdef SSL_CTRL_SET_TLSEXT_SERVERNAME_CB
-  static void GetServername(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SetServername(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void GetServername(const FunctionCallbackInfo<Value>& args);
+  static void SetServername(const FunctionCallbackInfo<Value>& args);
   static int SelectSNIContextCallback(SSL* s, int* ad, void* arg);
 #endif  // SSL_CTRL_SET_TLSEXT_SERVERNAME_CB
 

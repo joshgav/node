@@ -7,14 +7,11 @@
 #include "util-inl.h"
 #include "node.h"
 
+#include "node_ni.h"
+
 namespace node {
 
-using v8::Context;
-using v8::FunctionCallbackInfo;
-using v8::HandleScope;
-using v8::Local;
-using v8::Object;
-using v8::Value;
+using namespace node::ni;
 
 
 void HandleWrap::Ref(const FunctionCallbackInfo<Value>& args) {

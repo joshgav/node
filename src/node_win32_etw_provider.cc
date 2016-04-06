@@ -2,11 +2,12 @@
 #include "node_win32_etw_provider.h"
 #include "node_etw_provider.h"
 #include "node_win32_etw_provider-inl.h"
+#include "node_ni.h"
 
 namespace node {
 
-using v8::JitCodeEvent;
-using v8::V8;
+using namespace node::ni;
+
 
 HMODULE advapi;
 REGHANDLE node_provider;

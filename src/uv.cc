@@ -2,18 +2,12 @@
 #include "node.h"
 #include "env.h"
 #include "env-inl.h"
+#include "node_ni.h"
 
 namespace node {
 namespace uv {
 
-using v8::Context;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::Local;
-using v8::Integer;
-using v8::Object;
-using v8::String;
-using v8::Value;
+using namespace node::ni;
 
 
 void ErrName(const FunctionCallbackInfo<Value>& args) {

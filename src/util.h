@@ -1,7 +1,7 @@
 #ifndef SRC_UTIL_H_
 #define SRC_UTIL_H_
 
-#include "v8.h"
+#include "node_ni.h"
 
 #include <assert.h>
 #include <signal.h>
@@ -9,6 +9,8 @@
 #include <stdlib.h>
 
 namespace node {
+
+using namespace node::ni;
 
 #define FIXED_ONE_BYTE_STRING(isolate, string)                                \
   (node::OneByteString((isolate), (string), sizeof(string) - 1))
@@ -137,9 +139,9 @@ inline ContainerOfHelper<Inner, Outer> ContainerOf(Inner Outer::*field,
 // while the returned Local<T> is still in scope, it will destroy the
 // reference to the object.
 template <class TypeName>
-inline v8::Local<TypeName> PersistentToLocal(
-    v8::Isolate* isolate,
-    const v8::Persistent<TypeName>& persistent);
+inline Local<TypeName> PersistentToLocal(
+    Isolate* isolate,
+    const Persistent<TypeName>& persistent);
 
 // Unchecked conversion from a non-weak Persistent<T> to Local<TLocal<T>,
 // use with care!
@@ -147,40 +149,40 @@ inline v8::Local<TypeName> PersistentToLocal(
 // Do not call persistent.Reset() while the returned Local<T> is still in
 // scope, it will destroy the reference to the object.
 template <class TypeName>
-inline v8::Local<TypeName> StrongPersistentToLocal(
-    const v8::Persistent<TypeName>& persistent);
+inline Local<TypeName> StrongPersistentToLocal(
+    const Persistent<TypeName>& persistent);
 
 template <class TypeName>
-inline v8::Local<TypeName> WeakPersistentToLocal(
-    v8::Isolate* isolate,
-    const v8::Persistent<TypeName>& persistent);
+inline Local<TypeName> WeakPersistentToLocal(
+    Isolate* isolate,
+    const Persistent<TypeName>& persistent);
 
-// Convenience wrapper around v8::String::NewFromOneByte().
-inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
+// Convenience wrapper around String::NewFromOneByte().
+inline Local<String> OneByteString(Isolate* isolate,
                                            const char* data,
                                            int length = -1);
 
 // For the people that compile with -funsigned-char.
-inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
+inline Local<String> OneByteString(Isolate* isolate,
                                            const signed char* data,
                                            int length = -1);
 
-inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
+inline Local<String> OneByteString(Isolate* isolate,
                                            const unsigned char* data,
                                            int length = -1);
 
-inline void Wrap(v8::Local<v8::Object> object, void* pointer);
+inline void Wrap(Local<Object> object, void* pointer);
 
-inline void ClearWrap(v8::Local<v8::Object> object);
+inline void ClearWrap(Local<Object> object);
 
 template <typename TypeName>
-inline TypeName* Unwrap(v8::Local<v8::Object> object);
+inline TypeName* Unwrap(Local<Object> object);
 
 inline void SwapBytes(uint16_t* dst, const uint16_t* src, size_t buflen);
 
 class Utf8Value {
   public:
-    explicit Utf8Value(v8::Isolate* isolate, v8::Local<v8::Value> value);
+    explicit Utf8Value(Isolate* isolate, Local<Value> value);
 
     ~Utf8Value() {
       if (str_ != str_st_)
@@ -207,7 +209,7 @@ class Utf8Value {
 
 class TwoByteValue {
   public:
-    explicit TwoByteValue(v8::Isolate* isolate, v8::Local<v8::Value> value);
+    explicit TwoByteValue(Isolate* isolate, Local<Value> value);
 
     ~TwoByteValue() {
       if (str_ != str_st_)
@@ -234,7 +236,7 @@ class TwoByteValue {
 
 class BufferValue {
   public:
-    explicit BufferValue(v8::Isolate* isolate, v8::Local<v8::Value> value);
+    explicit BufferValue(Isolate* isolate, Local<Value> value);
 
     ~BufferValue() {
       if (str_ != str_st_)

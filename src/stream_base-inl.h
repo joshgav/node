@@ -6,20 +6,11 @@
 #include "node.h"
 #include "env.h"
 #include "env-inl.h"
-#include "v8.h"
+#include "node_ni.h"
 
 namespace node {
 
-using v8::External;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Local;
-using v8::Object;
-using v8::PropertyAttribute;
-using v8::PropertyCallbackInfo;
-using v8::String;
-using v8::Value;
+using namespace node::ni;
 
 template <class Base>
 void StreamBase::AddMethods(Environment* env,
@@ -28,19 +19,19 @@ void StreamBase::AddMethods(Environment* env,
   HandleScope scope(env->isolate());
 
   enum PropertyAttribute attributes =
-      static_cast<PropertyAttribute>(v8::ReadOnly | v8::DontDelete);
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete);
   t->InstanceTemplate()->SetAccessor(env->fd_string(),
                                      GetFD<Base>,
                                      nullptr,
                                      env->as_external(),
-                                     v8::DEFAULT,
+                                     DEFAULT,
                                      attributes);
 
   t->InstanceTemplate()->SetAccessor(env->external_stream_string(),
                                      GetExternal<Base>,
                                      nullptr,
                                      env->as_external(),
-                                     v8::DEFAULT,
+                                     DEFAULT,
                                      attributes);
 
   env->SetProtoMethod(t, "readStart", JSMethod<Base, &StreamBase::ReadStart>);

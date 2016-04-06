@@ -6,11 +6,13 @@
 #include "env-inl.h"
 #include "util.h"
 #include "util-inl.h"
-#include "v8.h"
+#include "node_ni.h"
 
 namespace node {
 
-inline BaseObject::BaseObject(Environment* env, v8::Local<v8::Object> handle)
+using namespace node::ni;
+
+inline BaseObject::BaseObject(Environment* env, Local<Object> handle)
     : handle_(env->isolate(), handle),
       env_(env) {
   CHECK_EQ(false, handle.IsEmpty());
@@ -22,12 +24,12 @@ inline BaseObject::~BaseObject() {
 }
 
 
-inline v8::Persistent<v8::Object>& BaseObject::persistent() {
+inline Persistent<Object>& BaseObject::persistent() {
   return handle_;
 }
 
 
-inline v8::Local<v8::Object> BaseObject::object() {
+inline Local<Object> BaseObject::object() {
   return PersistentToLocal(env_->isolate(), handle_);
 }
 
@@ -39,7 +41,7 @@ inline Environment* BaseObject::env() const {
 
 template <typename Type>
 inline void BaseObject::WeakCallback(
-    const v8::WeakCallbackInfo<Type>& data) {
+    const WeakCallbackInfo<Type>& data) {
   Type* self = data.GetParameter();
   self->persistent().Reset();
   delete self;
@@ -48,13 +50,13 @@ inline void BaseObject::WeakCallback(
 
 template <typename Type>
 inline void BaseObject::MakeWeak(Type* ptr) {
-  v8::HandleScope scope(env_->isolate());
-  v8::Local<v8::Object> handle = object();
+  HandleScope scope(env_->isolate());
+  Local<Object> handle = object();
   CHECK_GT(handle->InternalFieldCount(), 0);
   Wrap(handle, ptr);
   handle_.MarkIndependent();
   handle_.SetWeak<Type>(ptr, WeakCallback<Type>,
-                        v8::WeakCallbackType::kParameter);
+                        WeakCallbackType::kParameter);
 }
 
 

@@ -5,7 +5,8 @@
 #include "util.h"
 #include "util-inl.h"
 #include "uv.h"
-#include "v8.h"
+
+#include "node_ni.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -15,13 +16,13 @@ struct sockaddr;
 // Variation on NODE_DEFINE_CONSTANT that sets a String value.
 #define NODE_DEFINE_STRING_CONSTANT(target, name, constant)                   \
   do {                                                                        \
-    v8::Isolate* isolate = target->GetIsolate();                              \
-    v8::Local<v8::String> constant_name =                                     \
-        v8::String::NewFromUtf8(isolate, name);                               \
-    v8::Local<v8::String> constant_value =                                    \
-        v8::String::NewFromUtf8(isolate, constant);                           \
-    v8::PropertyAttribute constant_attributes =                               \
-        static_cast<v8::PropertyAttribute>(v8::ReadOnly | v8::DontDelete);    \
+    Isolate* isolate = target->GetIsolate();                              \
+    Local<String> constant_name =                                     \
+        String::NewFromUtf8(isolate, name);                               \
+    Local<String> constant_value =                                    \
+        String::NewFromUtf8(isolate, constant);                           \
+    PropertyAttribute constant_attributes =                               \
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete);    \
     target->DefineOwnProperty(isolate->GetCurrentContext(),                   \
                               constant_name,                                  \
                               constant_value,                                 \
@@ -30,6 +31,8 @@ struct sockaddr;
 
 namespace node {
 
+using namespace node::ni;
+
 // Forward declaration
 class Environment;
 
@@ -37,48 +40,48 @@ class Environment;
 // while the returned Local<T> is still in scope, it will destroy the
 // reference to the object.
 template <class TypeName>
-inline v8::Local<TypeName> PersistentToLocal(
-    v8::Isolate* isolate,
-    const v8::Persistent<TypeName>& persistent);
+inline Local<TypeName> PersistentToLocal(
+    Isolate* isolate,
+    const Persistent<TypeName>& persistent);
 
 // Call with valid HandleScope and while inside Context scope.
-v8::Local<v8::Value> MakeCallback(Environment* env,
-                                   v8::Local<v8::Object> recv,
+Local<Value> MakeCallback(Environment* env,
+                                   Local<Object> recv,
                                    const char* method,
                                    int argc = 0,
-                                   v8::Local<v8::Value>* argv = nullptr);
+                                   Local<Value>* argv = nullptr);
 
 // Call with valid HandleScope and while inside Context scope.
-v8::Local<v8::Value> MakeCallback(Environment* env,
-                                   v8::Local<v8::Object> recv,
+Local<Value> MakeCallback(Environment* env,
+                                   Local<Object> recv,
                                    uint32_t index,
                                    int argc = 0,
-                                   v8::Local<v8::Value>* argv = nullptr);
+                                   Local<Value>* argv = nullptr);
 
 // Call with valid HandleScope and while inside Context scope.
-v8::Local<v8::Value> MakeCallback(Environment* env,
-                                   v8::Local<v8::Object> recv,
-                                   v8::Local<v8::String> symbol,
+Local<Value> MakeCallback(Environment* env,
+                                   Local<Object> recv,
+                                   Local<String> symbol,
                                    int argc = 0,
-                                   v8::Local<v8::Value>* argv = nullptr);
+                                   Local<Value>* argv = nullptr);
 
 // Call with valid HandleScope and while inside Context scope.
-v8::Local<v8::Value> MakeCallback(Environment* env,
-                                   v8::Local<v8::Value> recv,
-                                   v8::Local<v8::Function> callback,
+Local<Value> MakeCallback(Environment* env,
+                                   Local<Value> recv,
+                                   Local<Function> callback,
                                    int argc = 0,
-                                   v8::Local<v8::Value>* argv = nullptr);
+                                   Local<Value>* argv = nullptr);
 
 // Convert a struct sockaddr to a { address: '1.2.3.4', port: 1234 } JS object.
 // Sets address and port properties on the info object and returns it.
 // If |info| is omitted, a new object is returned.
-v8::Local<v8::Object> AddressToJS(
+Local<Object> AddressToJS(
     Environment* env,
     const sockaddr* addr,
-    v8::Local<v8::Object> info = v8::Local<v8::Object>());
+    Local<Object> info = Local<Object>());
 
 template <typename T, int (*F)(const typename T::HandleType*, sockaddr*, int*)>
-void GetSockOrPeerName(const v8::FunctionCallbackInfo<v8::Value>& args) {
+void GetSockOrPeerName(const FunctionCallbackInfo<Value>& args) {
   T* const wrap = Unwrap<T>(args.Holder());
   CHECK(args[0]->IsObject());
   sockaddr_storage storage;
@@ -86,7 +89,7 @@ void GetSockOrPeerName(const v8::FunctionCallbackInfo<v8::Value>& args) {
   sockaddr* const addr = reinterpret_cast<sockaddr*>(&storage);
   const int err = F(&wrap->handle_, addr, &addrlen);
   if (err == 0)
-    AddressToJS(wrap->env(), addr, args[0].As<v8::Object>());
+    AddressToJS(wrap->env(), addr, args[0].As<Object>());
   args.GetReturnValue().Set(err);
 }
 
@@ -126,15 +129,15 @@ constexpr size_t arraysize(const T(&)[N]) { return N; }
 # define NO_RETURN
 #endif
 
-bool IsExceptionDecorated(Environment* env, v8::Local<v8::Value> er);
+bool IsExceptionDecorated(Environment* env, Local<Value> er);
 
 void AppendExceptionLine(Environment* env,
-                         v8::Local<v8::Value> er,
-                         v8::Local<v8::Message> message);
+                         Local<Value> er,
+                         Local<Message> message);
 
 NO_RETURN void FatalError(const char* location, const char* message);
 
-v8::Local<v8::Value> BuildStatsObject(Environment* env, const uv_stat_t* s);
+Local<Value> BuildStatsObject(Environment* env, const uv_stat_t* s);
 
 enum Endianness {
   kLittleEndian,  // _Not_ LITTLE_ENDIAN, clashes with endian.h.
@@ -161,7 +164,7 @@ inline bool IsBigEndian() {
 }
 
 // parse index for external array data
-inline MUST_USE_RESULT bool ParseArrayIndex(v8::Local<v8::Value> arg,
+inline MUST_USE_RESULT bool ParseArrayIndex(Local<Value> arg,
                                             size_t def,
                                             size_t* ret) {
   if (arg->IsUndefined()) {
@@ -178,22 +181,23 @@ inline MUST_USE_RESULT bool ParseArrayIndex(v8::Local<v8::Value> arg,
   return true;
 }
 
-void ThrowError(v8::Isolate* isolate, const char* errmsg);
-void ThrowTypeError(v8::Isolate* isolate, const char* errmsg);
-void ThrowRangeError(v8::Isolate* isolate, const char* errmsg);
-void ThrowErrnoException(v8::Isolate* isolate,
+void ThrowError(Isolate* isolate, const char* errmsg);
+void ThrowTypeError(Isolate* isolate, const char* errmsg);
+void ThrowRangeError(Isolate* isolate, const char* errmsg);
+void ThrowErrnoException(Isolate* isolate,
                          int errorno,
                          const char* syscall = nullptr,
                          const char* message = nullptr,
                          const char* path = nullptr);
-void ThrowUVException(v8::Isolate* isolate,
+void ThrowUVException(Isolate* isolate,
                       int errorno,
                       const char* syscall = nullptr,
                       const char* message = nullptr,
                       const char* path = nullptr,
                       const char* dest = nullptr);
 
-class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
+class ArrayBufferAllocator : public ArrayBuffer::Allocator {
+
  public:
   ArrayBufferAllocator() : env_(nullptr) { }
 
@@ -290,10 +294,10 @@ class NodeInstanceData {
 };
 
 namespace Buffer {
-v8::MaybeLocal<v8::Object> Copy(Environment* env, const char* data, size_t len);
-v8::MaybeLocal<v8::Object> New(Environment* env, size_t size);
+MaybeLocal<Object> Copy(Environment* env, const char* data, size_t len);
+MaybeLocal<Object> New(Environment* env, size_t size);
 // Takes ownership of |data|.
-v8::MaybeLocal<v8::Object> New(Environment* env,
+MaybeLocal<Object> New(Environment* env,
                                char* data,
                                size_t length,
                                void (*callback)(char* data, void* hint),
@@ -301,7 +305,7 @@ v8::MaybeLocal<v8::Object> New(Environment* env,
 // Takes ownership of |data|.  Must allocate |data| with malloc() or realloc()
 // because ArrayBufferAllocator::Free() deallocates it again with free().
 // Mixing operator new and free() is undefined behavior so don't do that.
-v8::MaybeLocal<v8::Object> New(Environment* env, char* data, size_t length);
+MaybeLocal<Object> New(Environment* env, char* data, size_t length);
 }  // namespace Buffer
 
 }  // namespace node

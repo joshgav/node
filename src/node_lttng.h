@@ -2,8 +2,8 @@
 #define SRC_NODE_LTTNG_H_
 
 #include "node.h"
-#include "v8.h"
 #include "env.h"
+#include "node_ni.h"
 
 extern "C" {
 typedef struct {
@@ -33,7 +33,9 @@ typedef struct {
 
 namespace node {
 
-void InitLTTNG(Environment* env, v8::Local<v8::Object> target);
+using namespace node::ni;
+
+void InitLTTNG(Environment* env, Local<Object> target);
 
 }  // namespace node
 

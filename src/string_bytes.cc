@@ -2,7 +2,7 @@
 
 #include "node.h"
 #include "node_buffer.h"
-#include "v8.h"
+#include "node_ni.h"
 
 #include <limits.h>
 #include <string.h>  // memcpy
@@ -15,14 +15,7 @@
 
 namespace node {
 
-using v8::EscapableHandleScope;
-using v8::HandleScope;
-using v8::Isolate;
-using v8::Local;
-using v8::Object;
-using v8::String;
-using v8::Value;
-using v8::MaybeLocal;
+using namespace node::ni;
 
 template <typename ResourceType, typename TypeName>
 class ExternString: public ResourceType {

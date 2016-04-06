@@ -1,27 +1,29 @@
 #ifndef SRC_BASE_OBJECT_H_
 #define SRC_BASE_OBJECT_H_
 
-#include "v8.h"
+#include "node_ni.h"
 
 namespace node {
+
+using namespace node::ni;
 
 class Environment;
 
 class BaseObject {
  public:
-  inline BaseObject(Environment* env, v8::Local<v8::Object> handle);
+  inline BaseObject(Environment* env, Local<Object> handle);
   inline virtual ~BaseObject();
 
   // Returns the wrapped object.  Returns an empty handle when
   // persistent.IsEmpty() is true.
-  inline v8::Local<v8::Object> object();
+  inline Local<Object> object();
 
   // The parent class is responsible for calling .Reset() on destruction
   // when the persistent handle is strong because there is no way for
   // BaseObject to know when the handle goes out of scope.
   // Weak handles have been reset by the time the destructor runs but
   // calling .Reset() again is harmless.
-  inline v8::Persistent<v8::Object>& persistent();
+  inline Persistent<Object>& persistent();
 
   inline Environment* env() const;
 
@@ -40,9 +42,9 @@ class BaseObject {
 
   template <typename Type>
   static inline void WeakCallback(
-      const v8::WeakCallbackInfo<Type>& data);
+      const WeakCallbackInfo<Type>& data);
 
-  v8::Persistent<v8::Object> handle_;
+  Persistent<Object> handle_;
   Environment* env_;
 };
 

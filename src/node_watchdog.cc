@@ -1,13 +1,14 @@
 #include "node_watchdog.h"
 #include "util.h"
 #include "util-inl.h"
+#include "node_ni.h"
 
 namespace node {
 
-using v8::V8;
+using namespace node::ni;
 
 
-Watchdog::Watchdog(v8::Isolate* isolate, uint64_t ms) : isolate_(isolate),
+Watchdog::Watchdog(Isolate* isolate, uint64_t ms) : isolate_(isolate),
                                                         destroyed_(false) {
   int rc;
   loop_ = new uv_loop_t;

@@ -6,20 +6,14 @@
 #include "util.h"
 #include "util-inl.h"
 
+#include "node_ni.h"
+
 #include <string.h>
 #include <stdlib.h>
 
 namespace node {
 
-using v8::Context;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Local;
-using v8::Object;
-using v8::Value;
-
+using namespace node::ni;
 
 void StatWatcher::Initialize(Environment* env, Local<Object> target) {
   HandleScope scope(env->isolate());

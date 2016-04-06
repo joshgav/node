@@ -25,18 +25,21 @@
 #include "util.h"
 #include "util-inl.h"
 #include "uv.h"
-#include "v8.h"
-#include "v8-debug.h"
+
+#include "node_ni.h"
 
 #include <string.h>
 
 // Forward declaration to break recursive dependency chain with src/env.h.
 namespace node {
+
 class Environment;
 }  // namespace node
 
 namespace node {
 namespace debugger {
+
+using namespace node::ni;
 
 class AgentMessage {
  public:
@@ -94,13 +97,13 @@ class Agent {
   static void ThreadCb(Agent* agent);
   static void ParentSignalCb(uv_async_t* signal);
   static void ChildSignalCb(uv_async_t* signal);
-  static void MessageHandler(const v8::Debug::Message& message);
+  static void MessageHandler(const Debug::Message& message);
 
   // V8 API
-  static Agent* Unwrap(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void NotifyListen(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void NotifyWait(const v8::FunctionCallbackInfo<v8::Value>& args);
-  static void SendCommand(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static Agent* Unwrap(const FunctionCallbackInfo<Value>& args);
+  static void NotifyListen(const FunctionCallbackInfo<Value>& args);
+  static void NotifyWait(const FunctionCallbackInfo<Value>& args);
+  static void SendCommand(const FunctionCallbackInfo<Value>& args);
 
   void EnqueueMessage(AgentMessage* message);
 
@@ -122,7 +125,7 @@ class Agent {
   node::Environment* parent_env_;
   node::Environment* child_env_;
   uv_loop_t child_loop_;
-  v8::Persistent<v8::Object> api_;
+  Persistent<Object> api_;
 
   ListHead<AgentMessage, &AgentMessage::member> messages_;
 

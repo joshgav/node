@@ -1,13 +1,15 @@
 #ifndef SRC_NODE_JAVASCRIPT_H_
 #define SRC_NODE_JAVASCRIPT_H_
 
-#include "v8.h"
 #include "env.h"
+#include "node_ni.h"
 
 namespace node {
 
-void DefineJavaScript(Environment* env, v8::Local<v8::Object> target);
-v8::Local<v8::String> MainSource(Environment* env);
+using namespace node::ni;
+
+void DefineJavaScript(Environment* env, Local<Object> target);
+Local<String> MainSource(Environment* env);
 
 }  // namespace node
 

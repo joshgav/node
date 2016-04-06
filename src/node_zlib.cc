@@ -8,7 +8,7 @@
 #include "util.h"
 #include "util-inl.h"
 
-#include "v8.h"
+#include "node_ni.h"
 #include "zlib.h"
 
 #include <errno.h>
@@ -18,17 +18,7 @@
 
 namespace node {
 
-using v8::Array;
-using v8::Context;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Local;
-using v8::Number;
-using v8::Object;
-using v8::String;
-using v8::Value;
+using namespace node::ni;
 
 enum node_zlib_mode {
   NONE,
@@ -44,7 +34,7 @@ enum node_zlib_mode {
 #define GZIP_HEADER_ID1 0x1f
 #define GZIP_HEADER_ID2 0x8b
 
-void InitZlib(v8::Local<v8::Object> target);
+void InitZlib(Local<Object> target);
 
 
 /**

@@ -11,6 +11,8 @@
 #include "util.h"
 #include "uv.h"
 
+#include "node_ni.h"
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,19 +34,7 @@
 namespace node {
 namespace cares_wrap {
 
-using v8::Array;
-using v8::Context;
-using v8::EscapableHandleScope;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::HandleScope;
-using v8::Integer;
-using v8::Local;
-using v8::Null;
-using v8::Object;
-using v8::String;
-using v8::Value;
+using namespace node::ni;
 
 
 class GetAddrInfoReqWrap : public ReqWrap<uv_getaddrinfo_t> {

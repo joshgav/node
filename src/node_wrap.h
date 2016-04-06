@@ -11,9 +11,11 @@
 #include "util.h"
 #include "util-inl.h"
 #include "uv.h"
-#include "v8.h"
+#include "node_ni.h"
 
 namespace node {
+
+using namespace node::ni;
 
 #define WITH_GENERIC_UV_STREAM(env, obj, BODY, ELSE)                          \
     do {                                                                      \
@@ -35,8 +37,8 @@ namespace node {
     } while (0)
 
 inline uv_stream_t* HandleToStream(Environment* env,
-                                   v8::Local<v8::Object> obj) {
-  v8::HandleScope scope(env->isolate());
+                                   Local<Object> obj) {
+  HandleScope scope(env->isolate());
 
   WITH_GENERIC_UV_STREAM(env, obj, {
     return reinterpret_cast<uv_stream_t*>(wrap->UVHandle());

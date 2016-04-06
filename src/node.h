@@ -39,8 +39,8 @@
 # define SIGKILL         9
 #endif
 
-#include "v8.h"  // NOLINT(build/include_order)
 #include "node_version.h"  // NODE_MODULE_VERSION
+#include "node_ni.h"
 
 #define NODE_MAKE_VERSION(major, minor, patch)                                \
   ((major) * 0x1000 + (minor) * 0x100 + (patch))
@@ -79,17 +79,19 @@ struct uv_loop_s;
 // terminally confused when it's done in node_internals.h
 namespace node {
 
-NODE_EXTERN v8::Local<v8::Value> ErrnoException(v8::Isolate* isolate,
+using namespace node::ni;
+
+NODE_EXTERN Local<Value> ErrnoException(Isolate* isolate,
                                                 int errorno,
                                                 const char* syscall = NULL,
                                                 const char* message = NULL,
                                                 const char* path = NULL);
-NODE_EXTERN v8::Local<v8::Value> UVException(v8::Isolate* isolate,
+NODE_EXTERN Local<Value> UVException(Isolate* isolate,
                                              int errorno,
                                              const char* syscall = NULL,
                                              const char* message = NULL,
                                              const char* path = NULL);
-NODE_EXTERN v8::Local<v8::Value> UVException(v8::Isolate* isolate,
+NODE_EXTERN Local<Value> UVException(Isolate* isolate,
                                              int errorno,
                                              const char* syscall,
                                              const char* message,
@@ -97,23 +99,23 @@ NODE_EXTERN v8::Local<v8::Value> UVException(v8::Isolate* isolate,
                                              const char* dest);
 
 NODE_DEPRECATED("Use ErrnoException(isolate, ...)",
-                inline v8::Local<v8::Value> ErrnoException(
+                inline Local<Value> ErrnoException(
       int errorno,
       const char* syscall = NULL,
       const char* message = NULL,
       const char* path = NULL) {
-  return ErrnoException(v8::Isolate::GetCurrent(),
+  return ErrnoException(Isolate::GetCurrent(),
                         errorno,
                         syscall,
                         message,
                         path);
 })
 
-inline v8::Local<v8::Value> UVException(int errorno,
+inline Local<Value> UVException(int errorno,
                                         const char* syscall = NULL,
                                         const char* message = NULL,
                                         const char* path = NULL) {
-  return UVException(v8::Isolate::GetCurrent(),
+  return UVException(Isolate::GetCurrent(),
                      errorno,
                      syscall,
                      message,
@@ -131,24 +133,24 @@ inline v8::Local<v8::Value> UVException(int errorno,
  * cb, you will appear to leak 4-bytes for every invocation. Take heed.
  */
 
-NODE_EXTERN v8::Local<v8::Value> MakeCallback(
-    v8::Isolate* isolate,
-    v8::Local<v8::Object> recv,
+NODE_EXTERN Local<Value> MakeCallback(
+    Isolate* isolate,
+    Local<Object> recv,
     const char* method,
     int argc,
-    v8::Local<v8::Value>* argv);
-NODE_EXTERN v8::Local<v8::Value> MakeCallback(
-    v8::Isolate* isolate,
-    v8::Local<v8::Object> recv,
-    v8::Local<v8::String> symbol,
+    Local<Value>* argv);
+NODE_EXTERN Local<Value> MakeCallback(
+    Isolate* isolate,
+    Local<Object> recv,
+    Local<String> symbol,
     int argc,
-    v8::Local<v8::Value>* argv);
-NODE_EXTERN v8::Local<v8::Value> MakeCallback(
-    v8::Isolate* isolate,
-    v8::Local<v8::Object> recv,
-    v8::Local<v8::Function> callback,
+    Local<Value>* argv);
+NODE_EXTERN Local<Value> MakeCallback(
+    Isolate* isolate,
+    Local<Object> recv,
+    Local<Function> callback,
     int argc,
-    v8::Local<v8::Value>* argv);
+    Local<Value>* argv);
 
 }  // namespace node
 
@@ -192,9 +194,9 @@ NODE_EXTERN void Init(int* argc,
 
 class Environment;
 
-NODE_EXTERN Environment* CreateEnvironment(v8::Isolate* isolate,
+NODE_EXTERN Environment* CreateEnvironment(Isolate* isolate,
                                            struct uv_loop_s* loop,
-                                           v8::Local<v8::Context> context,
+                                           Local<Context> context,
                                            int argc,
                                            const char* const* argv,
                                            int exec_argc,
@@ -204,8 +206,8 @@ NODE_EXTERN void LoadEnvironment(Environment* env);
 // NOTE: Calling this is the same as calling
 // CreateEnvironment() + LoadEnvironment() from above.
 // `uv_default_loop()` will be passed as `loop`.
-NODE_EXTERN Environment* CreateEnvironment(v8::Isolate* isolate,
-                                           v8::Local<v8::Context> context,
+NODE_EXTERN Environment* CreateEnvironment(Isolate* isolate,
+                                           Local<Context> context,
                                            int argc,
                                            const char* const* argv,
                                            int exec_argc,
@@ -217,21 +219,21 @@ NODE_EXTERN int EmitExit(Environment* env);
 NODE_EXTERN void RunAtExit(Environment* env);
 
 /* Converts a unixtime to V8 Date */
-#define NODE_UNIXTIME_V8(t) v8::Date::New(v8::Isolate::GetCurrent(),          \
+#define NODE_UNIXTIME_V8(t) Date::New(Isolate::GetCurrent(),          \
     1000 * static_cast<double>(t))
 #define NODE_V8_UNIXTIME(v) (static_cast<double>((v)->NumberValue())/1000.0);
 
 // Used to be a macro, hence the uppercase name.
 #define NODE_DEFINE_CONSTANT(target, constant)                                \
   do {                                                                        \
-    v8::Isolate* isolate = target->GetIsolate();                              \
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();            \
-    v8::Local<v8::String> constant_name =                                     \
-        v8::String::NewFromUtf8(isolate, #constant);                          \
-    v8::Local<v8::Number> constant_value =                                    \
-        v8::Number::New(isolate, static_cast<double>(constant));              \
-    v8::PropertyAttribute constant_attributes =                               \
-        static_cast<v8::PropertyAttribute>(v8::ReadOnly | v8::DontDelete);    \
+    Isolate* isolate = target->GetIsolate();                              \
+    Local<Context> context = isolate->GetCurrentContext();            \
+    Local<String> constant_name =                                     \
+        String::NewFromUtf8(isolate, #constant);                          \
+    Local<Number> constant_value =                                    \
+        Number::New(isolate, static_cast<double>(constant));              \
+    PropertyAttribute constant_attributes =                               \
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete);    \
     (target)->DefineOwnProperty(context,                                      \
                                 constant_name,                                \
                                 constant_value,                               \
@@ -243,13 +245,13 @@ NODE_EXTERN void RunAtExit(Environment* env);
 template <typename TypeName>
 inline void NODE_SET_METHOD(const TypeName& recv,
                             const char* name,
-                            v8::FunctionCallback callback) {
-  v8::Isolate* isolate = v8::Isolate::GetCurrent();
-  v8::HandleScope handle_scope(isolate);
-  v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate,
+                            FunctionCallback callback) {
+  Isolate* isolate = Isolate::GetCurrent();
+  HandleScope handle_scope(isolate);
+  Local<FunctionTemplate> t = FunctionTemplate::New(isolate,
                                                                 callback);
-  v8::Local<v8::Function> fn = t->GetFunction();
-  v8::Local<v8::String> fn_name = v8::String::NewFromUtf8(isolate, name);
+  Local<Function> fn = t->GetFunction();
+  Local<String> fn_name = String::NewFromUtf8(isolate, name);
   fn->SetName(fn_name);
   recv->Set(fn_name, fn);
 }
@@ -257,58 +259,58 @@ inline void NODE_SET_METHOD(const TypeName& recv,
 
 // Used to be a macro, hence the uppercase name.
 // Not a template because it only makes sense for FunctionTemplates.
-inline void NODE_SET_PROTOTYPE_METHOD(v8::Local<v8::FunctionTemplate> recv,
+inline void NODE_SET_PROTOTYPE_METHOD(Local<FunctionTemplate> recv,
                                       const char* name,
-                                      v8::FunctionCallback callback) {
-  v8::Isolate* isolate = v8::Isolate::GetCurrent();
-  v8::HandleScope handle_scope(isolate);
-  v8::Local<v8::Signature> s = v8::Signature::New(isolate, recv);
-  v8::Local<v8::FunctionTemplate> t =
-      v8::FunctionTemplate::New(isolate, callback, v8::Local<v8::Value>(), s);
-  v8::Local<v8::Function> fn = t->GetFunction();
-  recv->PrototypeTemplate()->Set(v8::String::NewFromUtf8(isolate, name), fn);
-  v8::Local<v8::String> fn_name = v8::String::NewFromUtf8(isolate, name);
+                                      FunctionCallback callback) {
+  Isolate* isolate = Isolate::GetCurrent();
+  HandleScope handle_scope(isolate);
+  Local<Signature> s = Signature::New(isolate, recv);
+  Local<FunctionTemplate> t =
+      FunctionTemplate::New(isolate, callback, Local<Value>(), s);
+  Local<Function> fn = t->GetFunction();
+  recv->PrototypeTemplate()->Set(String::NewFromUtf8(isolate, name), fn);
+  Local<String> fn_name = String::NewFromUtf8(isolate, name);
   fn->SetName(fn_name);
 }
 #define NODE_SET_PROTOTYPE_METHOD node::NODE_SET_PROTOTYPE_METHOD
 
 enum encoding {ASCII, UTF8, BASE64, UCS2, BINARY, HEX, BUFFER};
 NODE_EXTERN enum encoding ParseEncoding(
-    v8::Isolate* isolate,
-    v8::Local<v8::Value> encoding_v,
+    Isolate* isolate,
+    Local<Value> encoding_v,
     enum encoding default_encoding = BINARY);
 NODE_DEPRECATED("Use ParseEncoding(isolate, ...)",
                 inline enum encoding ParseEncoding(
-      v8::Local<v8::Value> encoding_v,
+      Local<Value> encoding_v,
       enum encoding default_encoding = BINARY) {
-  return ParseEncoding(v8::Isolate::GetCurrent(), encoding_v, default_encoding);
+  return ParseEncoding(Isolate::GetCurrent(), encoding_v, default_encoding);
 })
 
-NODE_EXTERN void FatalException(v8::Isolate* isolate,
-                                const v8::TryCatch& try_catch);
+NODE_EXTERN void FatalException(Isolate* isolate,
+                                const TryCatch& try_catch);
 
 NODE_DEPRECATED("Use FatalException(isolate, ...)",
-                inline void FatalException(const v8::TryCatch& try_catch) {
-  return FatalException(v8::Isolate::GetCurrent(), try_catch);
+                inline void FatalException(const TryCatch& try_catch) {
+  return FatalException(Isolate::GetCurrent(), try_catch);
 })
 
 // Don't call with encoding=UCS2.
-NODE_EXTERN v8::Local<v8::Value> Encode(v8::Isolate* isolate,
+NODE_EXTERN Local<Value> Encode(Isolate* isolate,
                                         const char* buf,
                                         size_t len,
                                         enum encoding encoding = BINARY);
 
 // The input buffer should be in host endianness.
-NODE_EXTERN v8::Local<v8::Value> Encode(v8::Isolate* isolate,
+NODE_EXTERN Local<Value> Encode(Isolate* isolate,
                                         const uint16_t* buf,
                                         size_t len);
 
 NODE_DEPRECATED("Use Encode(isolate, ...)",
-                inline v8::Local<v8::Value> Encode(
+                inline Local<Value> Encode(
     const void* buf,
     size_t len,
     enum encoding encoding = BINARY) {
-  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  Isolate* isolate = Isolate::GetCurrent();
   if (encoding == UCS2) {
     assert(reinterpret_cast<uintptr_t>(buf) % sizeof(uint16_t) == 0 &&
            "UCS2 buffer must be aligned on two-byte boundary.");
@@ -319,43 +321,43 @@ NODE_DEPRECATED("Use Encode(isolate, ...)",
 })
 
 // Returns -1 if the handle was not valid for decoding
-NODE_EXTERN ssize_t DecodeBytes(v8::Isolate* isolate,
-                                v8::Local<v8::Value>,
+NODE_EXTERN ssize_t DecodeBytes(Isolate* isolate,
+                                Local<Value>,
                                 enum encoding encoding = BINARY);
 NODE_DEPRECATED("Use DecodeBytes(isolate, ...)",
                 inline ssize_t DecodeBytes(
-    v8::Local<v8::Value> val,
+    Local<Value> val,
     enum encoding encoding = BINARY) {
-  return DecodeBytes(v8::Isolate::GetCurrent(), val, encoding);
+  return DecodeBytes(Isolate::GetCurrent(), val, encoding);
 })
 
 // returns bytes written.
-NODE_EXTERN ssize_t DecodeWrite(v8::Isolate* isolate,
+NODE_EXTERN ssize_t DecodeWrite(Isolate* isolate,
                                 char* buf,
                                 size_t buflen,
-                                v8::Local<v8::Value>,
+                                Local<Value>,
                                 enum encoding encoding = BINARY);
 NODE_DEPRECATED("Use DecodeWrite(isolate, ...)",
                 inline ssize_t DecodeWrite(char* buf,
                                            size_t buflen,
-                                           v8::Local<v8::Value> val,
+                                           Local<Value> val,
                                            enum encoding encoding = BINARY) {
-  return DecodeWrite(v8::Isolate::GetCurrent(), buf, buflen, val, encoding);
+  return DecodeWrite(Isolate::GetCurrent(), buf, buflen, val, encoding);
 })
 
 #ifdef _WIN32
-NODE_EXTERN v8::Local<v8::Value> WinapiErrnoException(
-    v8::Isolate* isolate,
+NODE_EXTERN Local<Value> WinapiErrnoException(
+    Isolate* isolate,
     int errorno,
     const char *syscall = NULL,
     const char *msg = "",
     const char *path = NULL);
 
 NODE_DEPRECATED("Use WinapiErrnoException(isolate, ...)",
-                inline v8::Local<v8::Value> WinapiErrnoException(int errorno,
+                inline Local<Value> WinapiErrnoException(int errorno,
     const char *syscall = NULL,  const char *msg = "",
     const char *path = NULL) {
-  return WinapiErrnoException(v8::Isolate::GetCurrent(),
+  return WinapiErrnoException(Isolate::GetCurrent(),
                               errorno,
                               syscall,
                               msg,
@@ -367,14 +369,14 @@ const char *signo_string(int errorno);
 
 
 typedef void (*addon_register_func)(
-    v8::Local<v8::Object> exports,
-    v8::Local<v8::Value> module,
+    Local<Object> exports,
+    Local<Value> module,
     void* priv);
 
 typedef void (*addon_context_register_func)(
-    v8::Local<v8::Object> exports,
-    v8::Local<v8::Value> module,
-    v8::Local<v8::Context> context,
+    Local<Object> exports,
+    Local<Value> module,
+    Local<Context> context,
     void* priv);
 
 #define NM_F_BUILTIN 0x01

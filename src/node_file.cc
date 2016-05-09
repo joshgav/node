@@ -1,3 +1,5 @@
+#include "src/tracing/trace-event.h"
+
 #include "node.h"
 #include "node_file.h"
 #include "node_buffer.h"
@@ -14,7 +16,8 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <string.h>
+#include <string>
+#include <sstream>
 #include <errno.h>
 #include <limits.h>
 
@@ -137,6 +140,7 @@ static inline bool IsInt64(double x) {
 }
 
 static void After(uv_fs_t *req) {
+  TRACE_EVENT_ASYNC_END0("fs", "uvreq", req->path);
   FSReqWrap* req_wrap = static_cast<FSReqWrap*>(req->data);
   CHECK_EQ(&req_wrap->req_, req);
   req_wrap->ReleaseEarly();  // Free memory that's no longer used now.
@@ -340,6 +344,9 @@ struct fs_req_wrap {
   CHECK(req->IsObject());                                                     \
   FSReqWrap* req_wrap = FSReqWrap::New(env, req.As<Object>(),                 \
                                        #func, dest, encoding);                \
+  std::stringstream ss;                                                       \
+  ss << req_wrap->req_.fs_type;                                               \
+  TRACE_EVENT_ASYNC_BEGIN0("fs", "uvreq", req_wrap->req_.path);              \
   int err = uv_fs_ ## func(env->event_loop(),                                 \
                            &req_wrap->req_,                                   \
                            __VA_ARGS__,                                       \

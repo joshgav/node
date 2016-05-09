@@ -6,7 +6,9 @@
 
 #include <algorithm>
 #include <queue>
+#include <iostream>
 
+#include "src/tracing/trace-event.h"
 #include "src/base/logging.h"
 #include "src/base/platform/platform.h"
 #include "src/base/platform/time.h"
@@ -169,24 +171,35 @@ double DefaultPlatform::MonotonicallyIncreasingTime() {
          static_cast<double>(base::Time::kMicrosecondsPerSecond);
 }
 
-
 uint64_t DefaultPlatform::AddTraceEvent(
     char phase, const uint8_t* category_enabled_flag, const char* name,
-    uint64_t id, uint64_t bind_id, int num_args, const char** arg_names,
-    const uint8_t* arg_types, const uint64_t* arg_values, unsigned int flags) {
+    /* const char* scope, */ uint64_t id, uint64_t bind_id, int num_args,
+    const char** arg_names, const uint8_t* arg_types,
+    const uint64_t* arg_values, unsigned int flags) {
+
+  time_t timestamp = std::time(nullptr);
+
+  std::cout << "phase: " << phase << std::endl;
+  std::cout << "category_enabled_flag: " << category_enabled_flag << std::endl;
+  std::cout << "name: " << name << std::endl;
+  std::cout << "id: " << id << std::endl;
+  std::cout << "epoch_timestamp: " << timestamp << std::endl;
+  std::cout << "human_timestamp: " << std::asctime(std::localtime(&timestamp)) << std::endl;
+
   return 0;
 }
-
 
 void DefaultPlatform::UpdateTraceEventDuration(
     const uint8_t* category_enabled_flag, const char* name, uint64_t handle) {}
 
-
 const uint8_t* DefaultPlatform::GetCategoryGroupEnabled(const char* name) {
+  static uint8_t yes = CategoryGroupEnabledFlags::kEnabledForRecording_CategoryGroupEnabledFlags | 
+    CategoryGroupEnabledFlags::kEnabledForEventCallback_CategoryGroupEnabledFlags;
+  if (strcmp(name, "fs") == 0) return &yes;
+  
   static uint8_t no = 0;
   return &no;
 }
-
 
 const char* DefaultPlatform::GetCategoryGroupName(
     const uint8_t* category_enabled_flag) {

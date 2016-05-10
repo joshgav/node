@@ -8,6 +8,8 @@
 #include "node_internals.h"
 #include "node_revert.h"
 #include "node_platform.h"
+#include "trace/trace_broker.h"
+#include "trace/trace_console_listener.h"
 
 #if defined HAVE_PERFCTR
 #include "node_counters.h"
@@ -4469,6 +4471,9 @@ int Start(int argc, char** argv) {
   default_platform = node::platform::CreateNodePlatform(v8_thread_pool_size);
   V8::InitializePlatform(default_platform);
   V8::Initialize();
+
+  // TODO Make dependant on runtime flag
+  diag::trace::RegisterConsoleListener();
 
   int exit_code = 1;
   {

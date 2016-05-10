@@ -7,6 +7,7 @@
 #include "node_version.h"
 #include "node_internals.h"
 #include "node_revert.h"
+#include "node_platform.h"
 
 #if defined HAVE_PERFCTR
 #include "node_counters.h"
@@ -4465,7 +4466,7 @@ int Start(int argc, char** argv) {
   V8::SetEntropySource(crypto::EntropySource);
 #endif
 
-  default_platform = v8::platform::CreateDefaultPlatform(v8_thread_pool_size);
+  default_platform = node::platform::CreateNodePlatform(v8_thread_pool_size);
   V8::InitializePlatform(default_platform);
   V8::Initialize();
 

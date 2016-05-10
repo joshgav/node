@@ -117,7 +117,7 @@
         'tools/msvs/genfiles',
         'deps/uv/src/ares',
         '<(SHARED_INTERMEDIATE_DIR)', # for node_natives.h
-        'deps/v8' # include/v8_platform.h
+        'deps/v8', # include/v8_platform.h, src/libplatform/default-platform.h
       ],
 
       'sources': [
@@ -138,6 +138,7 @@
         'src/node_javascript.cc',
         'src/node_main.cc',
         'src/node_os.cc',
+        'src/node_platform.cc',
         'src/node_revert.cc',
         'src/node_util.cc',
         'src/node_v8.cc',

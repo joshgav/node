@@ -139,6 +139,8 @@ static inline bool IsInt64(double x) {
 
 static void After(uv_fs_t *req) {
   FSReqWrap* req_wrap = static_cast<FSReqWrap*>(req->data);
+
+  // This should provide different arguments depending on fs_type
   TRACE_EVENT_ASYNC_END1("uv_async_events", "uv_fs_func",
     req_wrap, "path", req->path);
 
@@ -344,8 +346,8 @@ struct fs_req_wrap {
   CHECK(req->IsObject());                                                     \
   FSReqWrap* req_wrap = FSReqWrap::New(env, req.As<Object>(),                 \
                                        #func, dest, encoding);                \
-  TRACE_EVENT_ASYNC_BEGIN1("uv_async_events", "uv_fs_func",                       \
-    req_wrap, "path", req_wrap->req_.path);                                          \
+  TRACE_EVENT_ASYNC_BEGIN1("uv_async_events", "uv_fs_func",                   \
+    req_wrap, "path", "dummy");                                               \
   int err = uv_fs_ ## func(env->event_loop(),                                 \
                            &req_wrap->req_,                                   \
                            __VA_ARGS__,                                       \

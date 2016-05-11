@@ -94,8 +94,8 @@ void TraceBroker::DispatchNativeFromJS(const FunctionCallbackInfo<Value>& info) 
 
 bool TraceBroker::DispatchJSFromNative(const char* category, std::map<const char*, const char*> trace_map) {
   // trace_js() is only initialized if js trace was `require`d in, otherwise it's an empty object
-  Local<Context> ctx = Isolate::GetCurrent()->GetCurrentContext();
-  if (trace_js()->Has(ctx, CharStringToV8String("_dispatchJSFromNative")).IsJust()) {
+  if (trace_js_is_set()) {
+    Local<Context> ctx = Isolate::GetCurrent()->GetCurrentContext();
     Local<String> category_js = CharStringToV8String(category);
 
     // convert map to Local<Object>

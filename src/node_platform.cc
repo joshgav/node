@@ -7,6 +7,7 @@
 #include "src/tracing/trace-event.h"
 
 #include <map>
+#include <string>
 
 namespace node {
 namespace platform {
@@ -28,8 +29,10 @@ uint64_t NodePlatform::AddTraceEvent(
     const char** arg_names, const uint8_t* arg_types,
     const uint64_t* arg_values, unsigned int flags) {
     
-  std::map<const char*, const char*> trace_map;
+  std::map<const char*, const char*> trace_map {};
 
+  // TODO iterate through num_args and cast arg_values to corresponding arg_types
+  //      then associate with corresponding arg_names
   v8::internal::tracing::TraceValueUnion type_value; 
   type_value.as_uint = arg_values[0];
   const char* arg_value = type_value.as_string;
@@ -45,9 +48,18 @@ void NodePlatform::UpdateTraceEventDuration(
 
 
 const uint8_t* NodePlatform::GetCategoryGroupEnabled(const char* name) {
-  static uint8_t yes = 1;
+  // this is a hack for now, should be able to use strcmp?
+  std::string str_name(name);
+  std::size_t found = str_name.find("v8");
+  std::size_t found2 = str_name.find("V8");
+
   static uint8_t no = 0;
-  return &yes;
+  static uint8_t yes = 1;
+  if ((found != std::string::npos) || (found2 != std::string::npos)) {
+    return &no;
+  } else {
+    return &yes;
+  }
 }
 
 

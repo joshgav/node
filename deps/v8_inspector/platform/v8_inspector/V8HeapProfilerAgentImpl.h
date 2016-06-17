@@ -7,7 +7,7 @@
 
 #include "platform/inspector_protocol/Allocator.h"
 #include "platform/inspector_protocol/String16.h"
-#include "platform/v8_inspector/protocol/HeapProfiler.h"
+#include "platform/inspector_protocol/protocol/HeapProfiler.h"
 
 #include <v8.h>
 
@@ -15,12 +15,12 @@ namespace blink {
 
 class V8InspectorSessionImpl;
 
-using protocol::Maybe;
+using inspector::protocol::Maybe;
 
-class V8HeapProfilerAgentImpl : public protocol::HeapProfiler::Backend {
+class V8HeapProfilerAgentImpl : public inspector::protocol::HeapProfiler::Backend {
     PROTOCOL_DISALLOW_COPY(V8HeapProfilerAgentImpl);
 public:
-    V8HeapProfilerAgentImpl(V8InspectorSessionImpl*, protocol::FrontendChannel*, protocol::DictionaryValue* state);
+    V8HeapProfilerAgentImpl(V8InspectorSessionImpl*, inspector::protocol::FrontendChannel*, inspector::protocol::DictionaryValue* state);
     ~V8HeapProfilerAgentImpl() override;
     void restore();
 
@@ -34,12 +34,12 @@ public:
 
     void takeHeapSnapshot(ErrorString*, const Maybe<bool>& reportProgress) override;
 
-    void getObjectByHeapObjectId(ErrorString*, const String16& heapSnapshotObjectId, const Maybe<String16>& objectGroup, std::unique_ptr<protocol::Runtime::RemoteObject>* result) override;
+    void getObjectByHeapObjectId(ErrorString*, const String16& heapSnapshotObjectId, const Maybe<String16>& objectGroup, std::unique_ptr<inspector::protocol::Runtime::RemoteObject>* result) override;
     void addInspectedHeapObject(ErrorString*, const String16& inspectedHeapObjectId) override;
     void getHeapObjectId(ErrorString*, const String16& objectId, String16* heapSnapshotObjectId) override;
 
     void startSampling(ErrorString*, const Maybe<double>& samplingInterval) override;
-    void stopSampling(ErrorString*, std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfile>*) override;
+    void stopSampling(ErrorString*, std::unique_ptr<inspector::protocol::HeapProfiler::SamplingHeapProfile>*) override;
 
 private:
     void startTrackingHeapObjectsInternal(bool trackAllocations);
@@ -49,8 +49,8 @@ private:
 
     V8InspectorSessionImpl* m_session;
     v8::Isolate* m_isolate;
-    protocol::HeapProfiler::Frontend m_frontend;
-    protocol::DictionaryValue* m_state;
+    inspector::protocol::HeapProfiler::Frontend m_frontend;
+    inspector::protocol::DictionaryValue* m_state;
     bool m_hasTimer;
 };
 

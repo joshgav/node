@@ -33,9 +33,10 @@
 
 #include "platform/inspector_protocol/Maybe.h"
 #include "platform/inspector_protocol/Platform.h"
+#include "platform/inspector_protocol/protocol/Debugger.h"
+
 #include "platform/v8_inspector/JavaScriptCallFrame.h"
 #include "platform/v8_inspector/V8DebuggerScript.h"
-#include "platform/v8_inspector/protocol/Debugger.h"
 #include "platform/v8_inspector/public/V8Debugger.h"
 
 #include <v8-debug.h>
@@ -43,7 +44,7 @@
 
 namespace blink {
 
-using protocol::Maybe;
+using inspector::protocol::Maybe;
 
 struct ScriptBreakpoint;
 class InspectedContext;
@@ -80,13 +81,13 @@ public:
     void stepOutOfFunction();
     void clearStepping();
 
-    bool setScriptSource(const String16& sourceID, const String16& newContent, bool preview, ErrorString*, Maybe<protocol::Debugger::SetScriptSourceError>*, JavaScriptCallFrames* newCallFrames, Maybe<bool>* stackChanged);
+    bool setScriptSource(const String16& sourceID, const String16& newContent, bool preview, ErrorString*, Maybe<inspector::protocol::Debugger::SetScriptSourceError>*, JavaScriptCallFrames* newCallFrames, Maybe<bool>* stackChanged);
     JavaScriptCallFrames currentCallFrames(int limit = 0);
 
     // Each script inherits debug data from v8::Context where it has been compiled.
     // Only scripts whose debug data matches |contextGroupId| will be reported.
     // Passing 0 will result in reporting all scripts.
-    void getCompiledScripts(int contextGroupId, protocol::Vector<V8DebuggerParsedScript>&);
+    void getCompiledScripts(int contextGroupId, inspector::protocol::Vector<V8DebuggerParsedScript>&);
     void debuggerAgentEnabled();
     void debuggerAgentDisabled();
 
@@ -107,7 +108,7 @@ public:
     v8::Local<v8::Context> regexContext();
 
     // V8Debugger implementation
-    std::unique_ptr<V8InspectorSession> connect(int contextGroupId, protocol::FrontendChannel*, V8InspectorSessionClient*, const String16* state) override;
+    std::unique_ptr<V8InspectorSession> connect(int contextGroupId, inspector::protocol::FrontendChannel*, V8InspectorSessionClient*, const String16* state) override;
     void contextCreated(const V8ContextInfo&) override;
     void contextDestroyed(v8::Local<v8::Context>) override;
     void resetContextGroup(int contextGroupId) override;
@@ -118,7 +119,7 @@ public:
     std::unique_ptr<V8StackTrace> createStackTrace(v8::Local<v8::StackTrace>) override;
     std::unique_ptr<V8StackTrace> captureStackTrace(size_t maxStackSize) override;
 
-    using ContextByIdMap = protocol::HashMap<int, std::unique_ptr<InspectedContext>>;
+    using ContextByIdMap = inspector::protocol::HashMap<int, std::unique_ptr<InspectedContext>>;
     void discardInspectedContext(int contextGroupId, int contextId);
     const ContextByIdMap* contextGroup(int contextGroupId);
     void disconnect(V8InspectorSessionImpl*);
@@ -149,9 +150,9 @@ private:
 
     v8::Isolate* m_isolate;
     V8DebuggerClient* m_client;
-    using ContextsByGroupMap = protocol::HashMap<int, std::unique_ptr<ContextByIdMap>>;
+    using ContextsByGroupMap = inspector::protocol::HashMap<int, std::unique_ptr<ContextByIdMap>>;
     ContextsByGroupMap m_contexts;
-    using SessionMap = protocol::HashMap<int, V8InspectorSessionImpl*>;
+    using SessionMap = inspector::protocol::HashMap<int, V8InspectorSessionImpl*>;
     SessionMap m_sessions;
     int m_enabledAgentsCount;
     bool m_breakpointsActivated;

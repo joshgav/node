@@ -168,7 +168,7 @@ V8DebuggerAgentImpl* V8DebuggerImpl::findEnabledDebuggerAgent(v8::Local<v8::Cont
     return findEnabledDebuggerAgent(getGroupId(context));
 }
 
-void V8DebuggerImpl::getCompiledScripts(int contextGroupId, protocol::Vector<V8DebuggerParsedScript>& result)
+void V8DebuggerImpl::getCompiledScripts(int contextGroupId, inspector::protocol::Vector<V8DebuggerParsedScript>& result)
 {
     v8::HandleScope scope(m_isolate);
     v8::MicrotasksScope microtasks(m_isolate, v8::MicrotasksScope::kDoNotRunMicrotasks);
@@ -351,7 +351,7 @@ void V8DebuggerImpl::clearStepping()
     callDebuggerMethod("clearStepping", 0, argv);
 }
 
-bool V8DebuggerImpl::setScriptSource(const String16& sourceID, const String16& newContent, bool preview, ErrorString* error, Maybe<protocol::Debugger::SetScriptSourceError>* errorData, JavaScriptCallFrames* newCallFrames, Maybe<bool>* stackChanged)
+bool V8DebuggerImpl::setScriptSource(const String16& sourceID, const String16& newContent, bool preview, ErrorString* error, Maybe<inspector::protocol::Debugger::SetScriptSourceError>* errorData, JavaScriptCallFrames* newCallFrames, Maybe<bool>* stackChanged)
 {
     class EnableLiveEditScope {
     public:
@@ -409,7 +409,7 @@ bool V8DebuggerImpl::setScriptSource(const String16& sourceID, const String16& n
     // Compile error.
     case 1:
         {
-            *errorData = protocol::Debugger::SetScriptSourceError::create()
+            *errorData = inspector::protocol::Debugger::SetScriptSourceError::create()
                 .setMessage(toProtocolStringWithTypeCheck(resultTuple->Get(2)))
                 .setLineNumber(resultTuple->Get(3)->ToInteger(m_isolate)->Value())
                 .setColumnNumber(resultTuple->Get(4)->ToInteger(m_isolate)->Value()).build();
@@ -475,7 +475,7 @@ void V8DebuggerImpl::handleProgramBreak(v8::Local<v8::Context> pausedContext, v8
     if (!agent)
         return;
 
-    protocol::Vector<String16> breakpointIds;
+    inspector::protocol::Vector<String16> breakpointIds;
     if (!hitBreakpointNumbers.IsEmpty()) {
         breakpointIds.resize(hitBreakpointNumbers->Length());
         for (size_t i = 0; i < hitBreakpointNumbers->Length(); i++) {
@@ -731,7 +731,7 @@ std::unique_ptr<V8StackTrace> V8DebuggerImpl::createStackTrace(v8::Local<v8::Sta
     return V8StackTraceImpl::create(agent, stackTrace, V8StackTrace::maxCallStackSizeToCapture);
 }
 
-std::unique_ptr<V8InspectorSession> V8DebuggerImpl::connect(int contextGroupId, protocol::FrontendChannel* channel, V8InspectorSessionClient* client, const String16* state)
+std::unique_ptr<V8InspectorSession> V8DebuggerImpl::connect(int contextGroupId, inspector::protocol::FrontendChannel* channel, V8InspectorSessionClient* client, const String16* state)
 {
     DCHECK(!m_sessions.contains(contextGroupId));
     std::unique_ptr<V8InspectorSessionImpl> session = V8InspectorSessionImpl::create(this, contextGroupId, channel, client, state);

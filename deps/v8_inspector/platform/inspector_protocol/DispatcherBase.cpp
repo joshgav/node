@@ -7,7 +7,7 @@
 #include "platform/inspector_protocol/FrontendChannel.h"
 #include "platform/inspector_protocol/Parser.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 // static
@@ -106,7 +106,7 @@ static void reportProtocolError(FrontendChannel* frontendChannel, int callId, Di
 void DispatcherBase::reportProtocolError(int callId, CommonErrorCode code, const String16& errorMessage, ErrorSupport* errors)
 {
     if (m_frontendChannel)
-        ::blink::protocol::reportProtocolError(m_frontendChannel, callId, code, errorMessage, errors);
+        ::inspector::protocol::reportProtocolError(m_frontendChannel, callId, code, errorMessage, errors);
 }
 
 void DispatcherBase::clearFrontend()
@@ -170,4 +170,4 @@ void UberDispatcher::dispatch(const String16& message)
 UberDispatcher::~UberDispatcher() = default;
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector

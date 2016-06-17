@@ -7,7 +7,7 @@
 
 #include "platform/inspector_protocol/Allocator.h"
 #include "platform/inspector_protocol/String16.h"
-#include "platform/v8_inspector/protocol/Profiler.h"
+#include "platform/inspector_protocol/protocol/Profiler.h"
 
 namespace v8 {
 class Isolate;
@@ -17,10 +17,10 @@ namespace blink {
 
 class V8InspectorSessionImpl;
 
-class V8ProfilerAgentImpl : public protocol::Profiler::Backend {
+class V8ProfilerAgentImpl : public inspector::protocol::Profiler::Backend {
     PROTOCOL_DISALLOW_COPY(V8ProfilerAgentImpl);
 public:
-    V8ProfilerAgentImpl(V8InspectorSessionImpl*, protocol::FrontendChannel*, protocol::DictionaryValue* state);
+    V8ProfilerAgentImpl(V8InspectorSessionImpl*, inspector::protocol::FrontendChannel*, inspector::protocol::DictionaryValue* state);
     ~V8ProfilerAgentImpl() override;
 
     bool enabled() const { return m_enabled; }
@@ -30,7 +30,7 @@ public:
     void disable(ErrorString*) override;
     void setSamplingInterval(ErrorString*, int) override;
     void start(ErrorString*) override;
-    void stop(ErrorString*, std::unique_ptr<protocol::Profiler::CPUProfile>*) override;
+    void stop(ErrorString*, std::unique_ptr<inspector::protocol::Profiler::CPUProfile>*) override;
 
     void consoleProfile(const String16& title);
     void consoleProfileEnd(const String16& title);
@@ -39,18 +39,18 @@ private:
     String16 nextProfileId();
 
     void startProfiling(const String16& title);
-    std::unique_ptr<protocol::Profiler::CPUProfile> stopProfiling(const String16& title, bool serialize);
+    std::unique_ptr<inspector::protocol::Profiler::CPUProfile> stopProfiling(const String16& title, bool serialize);
 
     bool isRecording() const;
 
     V8InspectorSessionImpl* m_session;
     v8::Isolate* m_isolate;
-    protocol::DictionaryValue* m_state;
-    protocol::Profiler::Frontend m_frontend;
+    inspector::protocol::DictionaryValue* m_state;
+    inspector::protocol::Profiler::Frontend m_frontend;
     bool m_enabled;
     bool m_recordingCPUProfile;
     class ProfileDescriptor;
-    protocol::Vector<ProfileDescriptor> m_startedProfiles;
+    inspector::protocol::Vector<ProfileDescriptor> m_startedProfiles;
     String16 m_frontendInitiatedProfileId;
 };
 

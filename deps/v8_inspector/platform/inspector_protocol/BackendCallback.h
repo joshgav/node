@@ -8,7 +8,7 @@
 #include "platform/inspector_protocol/ErrorSupport.h"
 #include "platform/inspector_protocol/Platform.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 class PLATFORM_EXPORT BackendCallback {
@@ -18,6 +18,6 @@ public:
 };
 
 } // namespace platform
-} // namespace blink
+} // namespace inspector
 
 #endif // !defined(BackendCallback_h)

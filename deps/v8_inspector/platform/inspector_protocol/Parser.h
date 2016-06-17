@@ -8,7 +8,7 @@
 #include "platform/inspector_protocol/Platform.h"
 #include "platform/inspector_protocol/String16.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 class Value;
@@ -16,6 +16,6 @@ class Value;
 PLATFORM_EXPORT std::unique_ptr<Value> parseJSON(const String16& json);
 
 } // namespace platform
-} // namespace blink
+} // namespace inspector
 
 #endif // !defined(Parser_h)

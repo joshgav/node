@@ -4,7 +4,7 @@
 
 #include "platform/inspector_protocol/Object.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 std::unique_ptr<Object> Object::parse(protocol::Value* value, ErrorSupport* errors)
@@ -32,4 +32,4 @@ Object::Object(std::unique_ptr<protocol::DictionaryValue> object) : m_object(std
 Object::~Object() { }
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector

@@ -4,7 +4,7 @@
 
 {
   'variables': {
-    'blink_platform_output_dir': '<(SHARED_INTERMEDIATE_DIR)/blink/platform',
+    'platform_v8_inspector_output_dir': '<(SHARED_INTERMEDIATE_DIR)/platform/v8_inspector',
   },
   'targets': [
     {
@@ -18,7 +18,7 @@
             'build/xxd.py',
             'InjectedScriptSource.js',
           ],
-          'outputs': [ '<(SHARED_INTERMEDIATE_DIR)/blink/platform/v8_inspector/InjectedScriptSource.h', ],
+          'outputs': [ '<(platform_v8_inspector_output_dir)/InjectedScriptSource.h', ],
           'action': [
             'python', 'build/xxd.py', 'InjectedScriptSource_js', 'InjectedScriptSource.js', '<@(_outputs)'
           ],
@@ -38,7 +38,7 @@
             'build/xxd.py',
             'DebuggerScript.js',
           ],
-          'outputs': [ '<(SHARED_INTERMEDIATE_DIR)/blink/platform/v8_inspector/DebuggerScript.h', ],
+          'outputs': [ '<(platform_v8_inspector_output_dir)/DebuggerScript.h', ],
           'action': [
             'python', 'build/xxd.py', 'DebuggerScript_js', 'DebuggerScript.js', '<@(_outputs)'
           ],
@@ -48,95 +48,12 @@
       'hard_dependency': 1,
     },
     {
-      # GN version: //third_party/WebKit/Source/platform:inspector_protocol_sources
-      'target_name': 'protocol_sources',
-      'type': 'none',
-      'dependencies': ['protocol_version'],
-      'variables': {
-        'conditions': [
-          ['debug_devtools=="node"', {
-              # Node build
-              'jinja_module_files': [
-                '../../deps/jinja2/jinja2/__init__.py',
-                '../../deps/markupsafe/markupsafe/__init__.py',  # jinja2 dep
-              ],
-            }, {
-              'jinja_module_files': [
-                '<(DEPTH)/third_party/jinja2/__init__.py',
-                '<(DEPTH)/third_party/markupsafe/__init__.py',  # jinja2 dep
-              ],
-            }
-          ],
-        ],
-      },
-      'actions': [
-        {
-          'action_name': 'generateV8InspectorProtocolBackendSources',
-          'inputs': [
-            '<@(jinja_module_files)',
-            # The python script in action below.
-            '../inspector_protocol/CodeGenerator.py',
-            # Source code templates.
-            '../inspector_protocol/TypeBuilder_h.template',
-            '../inspector_protocol/TypeBuilder_cpp.template',
-            # Protocol definitions
-            'js_protocol.json',
-          ],
-          'outputs': [
-            '<(blink_platform_output_dir)/v8_inspector/protocol/Debugger.cpp',
-            '<(blink_platform_output_dir)/v8_inspector/protocol/Debugger.h',
-            '<(blink_platform_output_dir)/v8_inspector/protocol/HeapProfiler.cpp',
-            '<(blink_platform_output_dir)/v8_inspector/protocol/HeapProfiler.h',
-            '<(blink_platform_output_dir)/v8_inspector/protocol/Profiler.cpp',
-            '<(blink_platform_output_dir)/v8_inspector/protocol/Profiler.h',
-            '<(blink_platform_output_dir)/v8_inspector/protocol/Runtime.cpp',
-            '<(blink_platform_output_dir)/v8_inspector/protocol/Runtime.h',
-          ],
-          'action': [
-            'python',
-            '../inspector_protocol/CodeGenerator.py',
-            '--protocol', 'js_protocol.json',
-            '--string_type', 'String16',
-            '--export_macro', 'PLATFORM_EXPORT',
-            '--output_dir', '<(blink_platform_output_dir)/v8_inspector/protocol',
-            '--output_package', 'platform/v8_inspector/protocol',
-          ],
-          'message': 'Generating protocol backend sources from json definitions.',
-        },
-      ]
-    },
-    {
-      # GN version: //third_party/WebKit/Source/core/inspector:protocol_version
-      'target_name': 'protocol_version',
-      'type': 'none',
-      'actions': [
-         {
-          'action_name': 'generateV8InspectorProtocolVersion',
-          'inputs': [
-            '../inspector_protocol/generate-inspector-protocol-version',
-            'js_protocol.json',
-          ],
-          'outputs': [
-            '<(blink_platform_output_dir)/v8_inspector/protocol.json',
-          ],
-          'action': [
-            'python',
-            '../inspector_protocol/generate-inspector-protocol-version',
-            '--o',
-            '<@(_outputs)',
-            'js_protocol.json',
-          ],
-          'message': 'Validate v8_inspector protocol for backwards compatibility and generate version file',
-        },
-      ]
-    },
-    {
       'target_name': 'v8_inspector_stl',
       'type': '<(component)',
       'dependencies': [
+        '../inspector_protocol/inspector.gyp:inspector',
         ':inspector_injected_script',
         ':inspector_debugger_script',
-        ':protocol_sources',
       ],
       'defines': [
         'V8_INSPECTOR_USE_STL=1'
@@ -145,38 +62,9 @@
         '../..',
         '../../../v8/include',
         '../../../v8',
-        '<(SHARED_INTERMEDIATE_DIR)/blink',
+        '<(SHARED_INTERMEDIATE_DIR)',
       ],
       'sources': [
-        '<(blink_platform_output_dir)/v8_inspector/protocol/Debugger.cpp',
-        '<(blink_platform_output_dir)/v8_inspector/protocol/Debugger.h',
-        '<(blink_platform_output_dir)/v8_inspector/protocol/HeapProfiler.cpp',
-        '<(blink_platform_output_dir)/v8_inspector/protocol/HeapProfiler.h',
-        '<(blink_platform_output_dir)/v8_inspector/protocol/Profiler.cpp',
-        '<(blink_platform_output_dir)/v8_inspector/protocol/Profiler.h',
-        '<(blink_platform_output_dir)/v8_inspector/protocol/Runtime.cpp',
-        '<(blink_platform_output_dir)/v8_inspector/protocol/Runtime.h',
-
-        '../inspector_protocol/Allocator.h',
-        '../inspector_protocol/Array.h',
-        '../inspector_protocol/Collections.h',
-        '../inspector_protocol/CollectionsSTL.h',
-        '../inspector_protocol/DispatcherBase.cpp',
-        '../inspector_protocol/DispatcherBase.h',
-        '../inspector_protocol/ErrorSupport.cpp',
-        '../inspector_protocol/ErrorSupport.h',
-        '../inspector_protocol/Maybe.h',
-        '../inspector_protocol/Parser.cpp',
-        '../inspector_protocol/Parser.h',
-        '../inspector_protocol/FrontendChannel.h',
-        '../inspector_protocol/String16.h',
-        '../inspector_protocol/String16STL.cpp',
-        '../inspector_protocol/String16STL.h',
-        '../inspector_protocol/Values.cpp',
-        '../inspector_protocol/Values.h',
-        '../inspector_protocol/ValueConversions.cpp',
-        '../inspector_protocol/ValueConversions.h',
-
         'Atomics.h',
         'IgnoreExceptionsScope.h',
         'InjectedScript.cpp',
@@ -229,8 +117,8 @@
         'public/V8StackTrace.h',
         'public/V8ToProtocolValue.h',
 
-        '<(blink_platform_output_dir/v8_inspector/DebuggerScript.h',
-        '<(blink_platform_output_dir/v8_inspector/InjectedScriptSource.h',
+        '<(platform_v8_inspector_output_dir)/DebuggerScript.h',
+        '<(platform_v8_inspector_output_dir)/InjectedScriptSource.h',
       ],
     },
   ],  # targets

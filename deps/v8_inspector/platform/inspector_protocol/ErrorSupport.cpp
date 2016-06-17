@@ -6,7 +6,7 @@
 
 #include "platform/inspector_protocol/String16.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 ErrorSupport::ErrorSupport() : m_errorString(nullptr) { }
@@ -67,4 +67,4 @@ String16 ErrorSupport::errors()
 }
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector

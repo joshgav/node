@@ -27,7 +27,7 @@
 #include "{{output_package}}/{{name}}.h"
 {% endfor %}
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 namespace {{domain.domain}} {
 
@@ -262,7 +262,7 @@ private:
 
 class {{export_macro}} Dispatcher {
 public:
-    static void wire(UberDispatcher*, blink::protocol::{{domain.domain}}::Backend*);
+    static void wire(UberDispatcher*, inspector::protocol::{{domain.domain}}::Backend*);
 
 private:
     Dispatcher() { }
@@ -280,6 +280,6 @@ public:
 
 } // namespace {{domain.domain}}
 } // namespace protocol
-} // namespace blink
+} // namespace inspector
 
 #endif // !defined(protocol_{{domain.domain}}_h)

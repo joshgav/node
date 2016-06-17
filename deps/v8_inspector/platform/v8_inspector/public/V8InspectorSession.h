@@ -6,7 +6,7 @@
 #define V8InspectorSession_h
 
 #include "platform/inspector_protocol/Platform.h"
-#include "platform/v8_inspector/protocol/Runtime.h"
+#include "platform/inspector_protocol/protocol/Runtime.h"
 
 #include <v8.h>
 
@@ -37,10 +37,10 @@ public:
     virtual void addInspectedObject(std::unique_ptr<Inspectable>) = 0;
 
     // API for the embedder to report native activities.
-    virtual void schedulePauseOnNextStatement(const String16& breakReason, std::unique_ptr<protocol::DictionaryValue> data) = 0;
+    virtual void schedulePauseOnNextStatement(const String16& breakReason, std::unique_ptr<inspector::protocol::DictionaryValue> data) = 0;
     virtual void cancelPauseOnNextStatement() = 0;
-    virtual void breakProgram(const String16& breakReason, std::unique_ptr<protocol::DictionaryValue> data) = 0;
-    virtual void breakProgramOnException(const String16& breakReason, std::unique_ptr<protocol::DictionaryValue> data) = 0;
+    virtual void breakProgram(const String16& breakReason, std::unique_ptr<inspector::protocol::DictionaryValue> data) = 0;
+    virtual void breakProgramOnException(const String16& breakReason, std::unique_ptr<inspector::protocol::DictionaryValue> data) = 0;
     virtual void setSkipAllPauses(bool) = 0;
     virtual void resume() = 0;
     virtual void stepOver() = 0;
@@ -53,9 +53,9 @@ public:
     virtual void allAsyncTasksCanceled() = 0;
 
     // API to work with remote objects.
-    virtual std::unique_ptr<protocol::Runtime::RemoteObject> wrapObject(v8::Local<v8::Context>, v8::Local<v8::Value>, const String16& groupName, bool generatePreview = false) = 0;
+    virtual std::unique_ptr<inspector::protocol::Runtime::RemoteObject> wrapObject(v8::Local<v8::Context>, v8::Local<v8::Value>, const String16& groupName, bool generatePreview = false) = 0;
     // FIXME: remove when InspectorConsoleAgent moves into V8 inspector.
-    virtual std::unique_ptr<protocol::Runtime::RemoteObject> wrapTable(v8::Local<v8::Context>, v8::Local<v8::Value> table, v8::Local<v8::Value> columns) = 0;
+    virtual std::unique_ptr<inspector::protocol::Runtime::RemoteObject> wrapTable(v8::Local<v8::Context>, v8::Local<v8::Value> table, v8::Local<v8::Value> columns) = 0;
     virtual v8::Local<v8::Value> findObject(ErrorString*, const String16& objectId, v8::Local<v8::Context>* = nullptr, String16* objectGroup = nullptr) = 0;
     virtual void releaseObjectGroup(const String16&) = 0;
 };

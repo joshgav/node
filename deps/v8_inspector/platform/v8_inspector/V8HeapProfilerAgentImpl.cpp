@@ -28,11 +28,11 @@ static const char samplingHeapProfilerInterval[] = "samplingHeapProfilerInterval
 
 class HeapSnapshotProgress final : public v8::ActivityControl {
 public:
-    HeapSnapshotProgress(protocol::HeapProfiler::Frontend* frontend)
+    HeapSnapshotProgress(inspector::protocol::HeapProfiler::Frontend* frontend)
         : m_frontend(frontend) { }
     ControlOption ReportProgressValue(int done, int total) override
     {
-        m_frontend->reportHeapSnapshotProgress(done, total, protocol::Maybe<bool>());
+        m_frontend->reportHeapSnapshotProgress(done, total, inspector::protocol::Maybe<bool>());
         if (done >= total) {
             m_frontend->reportHeapSnapshotProgress(total, total, true);
         }
@@ -40,7 +40,7 @@ public:
         return kContinue;
     }
 private:
-    protocol::HeapProfiler::Frontend* m_frontend;
+    inspector::protocol::HeapProfiler::Frontend* m_frontend;
 };
 
 class GlobalObjectNameResolver final : public v8::HeapProfiler::ObjectNameResolver {
@@ -75,13 +75,13 @@ public:
 
 private:
     size_t m_offset;
-    protocol::Vector<char> m_strings;
+    inspector::protocol::Vector<char> m_strings;
     V8InspectorSessionImpl* m_session;
 };
 
 class HeapSnapshotOutputStream final : public v8::OutputStream {
 public:
-    HeapSnapshotOutputStream(protocol::HeapProfiler::Frontend* frontend)
+    HeapSnapshotOutputStream(inspector::protocol::HeapProfiler::Frontend* frontend)
         : m_frontend(frontend) { }
     void EndOfStream() override { }
     int GetChunkSize() override { return 102400; }
@@ -92,7 +92,7 @@ public:
         return kContinue;
     }
 private:
-    protocol::HeapProfiler::Frontend* m_frontend;
+    inspector::protocol::HeapProfiler::Frontend* m_frontend;
 };
 
 v8::Local<v8::Object> objectByHeapObjectId(v8::Isolate* isolate, int id)
@@ -117,7 +117,7 @@ private:
 
 class HeapStatsStream final : public v8::OutputStream {
 public:
-    HeapStatsStream(protocol::HeapProfiler::Frontend* frontend)
+    HeapStatsStream(inspector::protocol::HeapProfiler::Frontend* frontend)
         : m_frontend(frontend)
     {
     }
@@ -133,7 +133,7 @@ public:
     WriteResult WriteHeapStatsChunk(v8::HeapStatsUpdate* updateData, int count) override
     {
         DCHECK_GT(count, 0);
-        std::unique_ptr<protocol::Array<int>> statsDiff = protocol::Array<int>::create();
+        std::unique_ptr<inspector::protocol::Array<int>> statsDiff = inspector::protocol::Array<int>::create();
         for (int i = 0; i < count; ++i) {
             statsDiff->addItem(updateData[i].index);
             statsDiff->addItem(updateData[i].count);
@@ -144,12 +144,12 @@ public:
     }
 
 private:
-    protocol::HeapProfiler::Frontend* m_frontend;
+    inspector::protocol::HeapProfiler::Frontend* m_frontend;
 };
 
 } // namespace
 
-V8HeapProfilerAgentImpl::V8HeapProfilerAgentImpl(V8InspectorSessionImpl* session, protocol::FrontendChannel* frontendChannel, protocol::DictionaryValue* state)
+V8HeapProfilerAgentImpl::V8HeapProfilerAgentImpl(V8InspectorSessionImpl* session, inspector::protocol::FrontendChannel* frontendChannel, inspector::protocol::DictionaryValue* state)
     : m_session(session)
     , m_isolate(session->debugger()->isolate())
     , m_frontend(frontendChannel)
@@ -183,7 +183,7 @@ void V8HeapProfilerAgentImpl::collectGarbage(ErrorString*)
     m_isolate->LowMemoryNotification();
 }
 
-void V8HeapProfilerAgentImpl::startTrackingHeapObjects(ErrorString*, const protocol::Maybe<bool>& trackAllocations)
+void V8HeapProfilerAgentImpl::startTrackingHeapObjects(ErrorString*, const inspector::protocol::Maybe<bool>& trackAllocations)
 {
     m_state->setBoolean(HeapProfilerAgentState::heapObjectsTrackingEnabled, true);
     bool allocationTrackingEnabled = trackAllocations.fromMaybe(false);
@@ -191,7 +191,7 @@ void V8HeapProfilerAgentImpl::startTrackingHeapObjects(ErrorString*, const proto
     startTrackingHeapObjectsInternal(allocationTrackingEnabled);
 }
 
-void V8HeapProfilerAgentImpl::stopTrackingHeapObjects(ErrorString* error, const protocol::Maybe<bool>& reportProgress)
+void V8HeapProfilerAgentImpl::stopTrackingHeapObjects(ErrorString* error, const inspector::protocol::Maybe<bool>& reportProgress)
 {
     requestHeapStatsUpdate();
     takeHeapSnapshot(error, reportProgress);
@@ -217,7 +217,7 @@ void V8HeapProfilerAgentImpl::disable(ErrorString* error)
     m_state->setBoolean(HeapProfilerAgentState::heapProfilerEnabled, false);
 }
 
-void V8HeapProfilerAgentImpl::takeHeapSnapshot(ErrorString* errorString, const protocol::Maybe<bool>& reportProgress)
+void V8HeapProfilerAgentImpl::takeHeapSnapshot(ErrorString* errorString, const inspector::protocol::Maybe<bool>& reportProgress)
 {
     v8::HeapProfiler* profiler = m_isolate->GetHeapProfiler();
     if (!profiler) {
@@ -239,7 +239,7 @@ void V8HeapProfilerAgentImpl::takeHeapSnapshot(ErrorString* errorString, const p
     const_cast<v8::HeapSnapshot*>(snapshot)->Delete();
 }
 
-void V8HeapProfilerAgentImpl::getObjectByHeapObjectId(ErrorString* error, const String16& heapSnapshotObjectId, const protocol::Maybe<String16>& objectGroup, std::unique_ptr<protocol::Runtime::RemoteObject>* result)
+void V8HeapProfilerAgentImpl::getObjectByHeapObjectId(ErrorString* error, const String16& heapSnapshotObjectId, const inspector::protocol::Maybe<String16>& objectGroup, std::unique_ptr<inspector::protocol::Runtime::RemoteObject>* result)
 {
     bool ok;
     int id = heapSnapshotObjectId.toInt(&ok);
@@ -355,15 +355,15 @@ void V8HeapProfilerAgentImpl::startSampling(ErrorString* errorString, const Mayb
 
 #if V8_MAJOR_VERSION >= 5
 namespace {
-std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfileNode> buildSampingHeapProfileNode(const v8::AllocationProfile::Node* node)
+std::unique_ptr<inspector::protocol::HeapProfiler::SamplingHeapProfileNode> buildSampingHeapProfileNode(const v8::AllocationProfile::Node* node)
 {
-    auto children = protocol::Array<protocol::HeapProfiler::SamplingHeapProfileNode>::create();
+    auto children = inspector::protocol::Array<inspector::protocol::HeapProfiler::SamplingHeapProfileNode>::create();
     for (const auto* child : node->children)
         children->addItem(buildSampingHeapProfileNode(child));
     size_t selfSize = 0;
     for (const auto& allocation : node->allocations)
         selfSize += allocation.size * allocation.count;
-    std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfileNode> result = protocol::HeapProfiler::SamplingHeapProfileNode::create()
+    std::unique_ptr<inspector::protocol::HeapProfiler::SamplingHeapProfileNode> result = inspector::protocol::HeapProfiler::SamplingHeapProfileNode::create()
         .setFunctionName(toProtocolString(node->name))
         .setScriptId(String16::number(node->script_id))
         .setUrl(toProtocolString(node->script_name))
@@ -376,7 +376,7 @@ std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfileNode> buildSampingHea
 } // namespace
 #endif
 
-void V8HeapProfilerAgentImpl::stopSampling(ErrorString* errorString, std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfile>* profile)
+void V8HeapProfilerAgentImpl::stopSampling(ErrorString* errorString, std::unique_ptr<inspector::protocol::HeapProfiler::SamplingHeapProfile>* profile)
 {
 #if V8_MAJOR_VERSION >= 5
     v8::HeapProfiler* profiler = m_isolate->GetHeapProfiler();
@@ -393,7 +393,7 @@ void V8HeapProfilerAgentImpl::stopSampling(ErrorString* errorString, std::unique
         return;
     }
     v8::AllocationProfile::Node* root = v8Profile->GetRootNode();
-    *profile = protocol::HeapProfiler::SamplingHeapProfile::create()
+    *profile = inspector::protocol::HeapProfiler::SamplingHeapProfile::create()
         .setHead(buildSampingHeapProfileNode(root)).build();
 #endif
 }

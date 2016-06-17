@@ -4,7 +4,7 @@
 
 #include "platform/inspector_protocol/String16WTF.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 String16::String16(const String16& other) : m_impl(other.m_impl) { }
@@ -44,4 +44,4 @@ String16 String16::createUninitialized(unsigned length, UChar*& data)
 }
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector

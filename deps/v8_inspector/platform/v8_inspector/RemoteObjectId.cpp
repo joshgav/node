@@ -12,13 +12,13 @@ namespace blink {
 
 RemoteObjectIdBase::RemoteObjectIdBase() : m_injectedScriptId(0) { }
 
-std::unique_ptr<protocol::DictionaryValue> RemoteObjectIdBase::parseInjectedScriptId(const String16& objectId)
+std::unique_ptr<inspector::protocol::DictionaryValue> RemoteObjectIdBase::parseInjectedScriptId(const String16& objectId)
 {
-    std::unique_ptr<protocol::Value> parsedValue = protocol::parseJSON(objectId);
-    if (!parsedValue || parsedValue->type() != protocol::Value::TypeObject)
+    std::unique_ptr<inspector::protocol::Value> parsedValue = inspector::protocol::parseJSON(objectId);
+    if (!parsedValue || parsedValue->type() != inspector::protocol::Value::TypeObject)
         return nullptr;
 
-    std::unique_ptr<protocol::DictionaryValue> parsedObjectId(protocol::DictionaryValue::cast(parsedValue.release()));
+    std::unique_ptr<inspector::protocol::DictionaryValue> parsedObjectId(inspector::protocol::DictionaryValue::cast(parsedValue.release()));
     bool success = parsedObjectId->getNumber("injectedScriptId", &m_injectedScriptId);
     if (success)
         return parsedObjectId;
@@ -30,7 +30,7 @@ RemoteObjectId::RemoteObjectId() : RemoteObjectIdBase(), m_id(0) { }
 std::unique_ptr<RemoteObjectId> RemoteObjectId::parse(ErrorString* errorString, const String16& objectId)
 {
     std::unique_ptr<RemoteObjectId> result(new RemoteObjectId());
-    std::unique_ptr<protocol::DictionaryValue> parsedObjectId = result->parseInjectedScriptId(objectId);
+    std::unique_ptr<inspector::protocol::DictionaryValue> parsedObjectId = result->parseInjectedScriptId(objectId);
     if (!parsedObjectId) {
         *errorString = "Invalid remote object id";
         return nullptr;
@@ -49,7 +49,7 @@ RemoteCallFrameId::RemoteCallFrameId() : RemoteObjectIdBase(), m_frameOrdinal(0)
 std::unique_ptr<RemoteCallFrameId> RemoteCallFrameId::parse(ErrorString* errorString, const String16& objectId)
 {
     std::unique_ptr<RemoteCallFrameId> result(new RemoteCallFrameId());
-    std::unique_ptr<protocol::DictionaryValue> parsedObjectId = result->parseInjectedScriptId(objectId);
+    std::unique_ptr<inspector::protocol::DictionaryValue> parsedObjectId = result->parseInjectedScriptId(objectId);
     if (!parsedObjectId) {
         *errorString = "Invalid call frame id";
         return nullptr;

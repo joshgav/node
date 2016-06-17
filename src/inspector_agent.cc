@@ -9,10 +9,12 @@
 #include "v8-platform.h"
 #include "util.h"
 
-#include "platform/v8_inspector/public/V8Inspector.h"
+#include "platform/inspector_protocol/Inspector.h"
 #include "platform/inspector_protocol/FrontendChannel.h"
 #include "platform/inspector_protocol/String16.h"
 #include "platform/inspector_protocol/Values.h"
+
+#include "platform/v8_inspector/public/V8Inspector.h"
 
 #include "libplatform/libplatform.h"
 
@@ -94,7 +96,7 @@ void SendVersionResponse(inspector_socket_t* socket) {
   SendHttpResponse(socket, buffer, len);
 }
 
-void SendTargentsListResponse(inspector_socket_t* socket, int port) {
+void SendTargetListResponse(inspector_socket_t* socket, int port) {
   const char LIST_RESPONSE_TEMPLATE[] =
       "[ {"
       "  \"description\": \"node.js instance\","
@@ -137,7 +139,7 @@ bool RespondToGet(inspector_socket_t* socket, const char* path, int port) {
     SendVersionResponse(socket);
   } else if (!strncmp(PATH_LIST, path, sizeof(PATH_LIST)) ||
              !strncmp(PATH, path, sizeof(PATH)))  {
-    SendTargentsListResponse(socket, port);
+    SendTargetListResponse(socket, port);
   } else if (!strncmp(path, PATH_ACTIVATE, sizeof(PATH_ACTIVATE) - 1) &&
              atoi(path + (sizeof(PATH_ACTIVATE) - 1)) == getpid()) {
     const char TARGET_ACTIVATED[] = "Target activated";
@@ -152,8 +154,8 @@ bool RespondToGet(inspector_socket_t* socket, const char* path, int port) {
 
 namespace inspector {
 
-using blink::protocol::DictionaryValue;
-using blink::protocol::String16;
+using ::inspector::protocol::DictionaryValue;
+using ::inspector::protocol::String16;
 
 class AgentImpl {
  public:
@@ -205,16 +207,16 @@ class AgentImpl {
   uv_async_t data_written_;
   uv_async_t io_thread_req_;
   inspector_socket_t* client_socket_;
-  blink::V8Inspector* inspector_;
+  node::inspector::NodeInspector* inspector_;
   v8::Platform* platform_;
   std::vector<std::string> message_queue_;
   std::vector<std::string> outgoing_message_queue_;
   bool dispatching_messages_;
 
-  friend class ChannelImpl;
+  friend class FrontendChannelImpl;
   friend class DispatchOnInspectorBackendTask;
   friend class SetConnectedTask;
-  friend class V8NodeInspector;
+  friend class NodeInspector;
   friend void InterruptCallback(v8::Isolate*, void* agent);
 };
 
@@ -234,25 +236,25 @@ class DispatchOnInspectorBackendTask : public v8::Task {
   AgentImpl* agent_;
 };
 
-class ChannelImpl final : public blink::protocol::FrontendChannel {
+class FrontendChannelImpl final : public ::inspector::protocol::FrontendChannel {
  public:
-  explicit ChannelImpl(AgentImpl* agent): agent_(agent) {}
-  virtual ~ChannelImpl() {}
+  explicit FrontendChannelImpl(AgentImpl* agent): agent_(agent) {}
+  virtual ~FrontendChannelImpl() {}
  private:
   virtual void sendProtocolResponse(int callId,
                                     const String16& message)
                                     override {
-    sendMessageToFrontend(message);
+    sendMessageToClient(message);
   }
 
   virtual void sendProtocolNotification(
       const String16& message) override {
-    sendMessageToFrontend(message);
+    sendMessageToClient(message);
   }
 
   virtual void flushProtocolNotifications() override { }
 
-  void sendMessageToFrontend(const String16& message) {
+  void sendMessageToClient(const String16& message) {
     agent_->Write(message.utf8());
   }
 
@@ -274,16 +276,20 @@ class SetConnectedTask : public v8::Task {
   bool connected_;
 };
 
-class V8NodeInspector : public blink::V8Inspector {
+// TODO make the base class specified here 
+// configurable to enable alternate impl's of
+// inspector_protocol/Inspector.h
+class NodeInspector : public blink::V8Inspector {
  public:
-  V8NodeInspector(AgentImpl* agent, node::Environment* env,
-                  v8::Platform* platform)
-                  : blink::V8Inspector(env->isolate(), env->context()),
-                    agent_(agent),
-                    isolate_(env->isolate()),
-                    platform_(platform),
-                    terminated_(false),
-                    running_nested_loop_(false) {}
+  NodeInspector(AgentImpl* agent,
+                node::Environment* env,
+                v8::Platform* platform)
+                : blink::V8Inspector(env->isolate(), env->context()),
+                  agent_(agent),
+                  isolate_(env->isolate()),
+                  platform_(platform),
+                  terminated_(false),
+                  running_nested_loop_(false) {}
 
   void runMessageLoopOnPause(int context_group_id) override {
     if (running_nested_loop_)
@@ -336,7 +342,7 @@ AgentImpl::~AgentImpl() {
 
 void AgentImpl::Start(v8::Platform* platform, int port, bool wait) {
   auto env = parent_env_;
-  inspector_ = new V8NodeInspector(this, env, platform);
+  inspector_ = new NodeInspector(this, env, platform);
 
   int err;
 
@@ -508,7 +514,7 @@ void AgentImpl::WorkerRunIO() {
   if (err == 0) {
     PrintDebuggerReadyMessage(port_);
   } else {
-    fprintf(stderr, "Unable to open devtools socket: %s\n", uv_strerror(err));
+    fprintf(stderr, "Unable to open inspector socket: %s\n", uv_strerror(err));
     ABORT();
   }
   if (!wait_) {
@@ -551,7 +557,7 @@ void AgentImpl::SetConnected(bool connected) {
   connected_ = connected;
   if (connected) {
     fprintf(stderr, "Debugger attached.\n");
-    inspector_->connectFrontend(new ChannelImpl(this));
+    inspector_->connectFrontend(new FrontendChannelImpl(this));
   } else {
     if (!shutting_down_)
       PrintDebuggerReadyMessage(port_);

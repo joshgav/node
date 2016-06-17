@@ -7,8 +7,14 @@
 
 #include "platform/inspector_protocol/Collections.h"
 #include "platform/inspector_protocol/String16.h"
+#include "platform/inspector_protocol/protocol/Debugger.h"
 #include "platform/v8_inspector/V8DebuggerImpl.h"
-#include "platform/v8_inspector/protocol/Debugger.h"
+
+namespace inspector {
+namespace protocol {
+class DictionaryValue;
+}
+}
 
 namespace blink {
 
@@ -18,13 +24,9 @@ class V8InspectorSessionImpl;
 class V8Regex;
 class V8StackTraceImpl;
 
-namespace protocol {
-class DictionaryValue;
-}
+using inspector::protocol::Maybe;
 
-using protocol::Maybe;
-
-class V8DebuggerAgentImpl : public protocol::Debugger::Backend {
+class V8DebuggerAgentImpl : public inspector::protocol::Debugger::Backend {
     PROTOCOL_DISALLOW_COPY(V8DebuggerAgentImpl);
 public:
     enum SkipPauseRequest {
@@ -41,7 +43,7 @@ public:
         MonitorCommandBreakpointSource
     };
 
-    V8DebuggerAgentImpl(V8InspectorSessionImpl*, protocol::FrontendChannel*, protocol::DictionaryValue* state);
+    V8DebuggerAgentImpl(V8InspectorSessionImpl*, inspector::protocol::FrontendChannel*, inspector::protocol::DictionaryValue* state);
     ~V8DebuggerAgentImpl() override;
     void restore();
 
@@ -57,48 +59,48 @@ public:
         const Maybe<int>& optionalColumnNumber,
         const Maybe<String16>& optionalCondition,
         String16*,
-        std::unique_ptr<protocol::Array<protocol::Debugger::Location>>* locations) override;
+        std::unique_ptr<inspector::protocol::Array<inspector::protocol::Debugger::Location>>* locations) override;
     void setBreakpoint(ErrorString*,
-        std::unique_ptr<protocol::Debugger::Location>,
+        std::unique_ptr<inspector::protocol::Debugger::Location>,
         const Maybe<String16>& optionalCondition,
         String16*,
-        std::unique_ptr<protocol::Debugger::Location>* actualLocation) override;
+        std::unique_ptr<inspector::protocol::Debugger::Location>* actualLocation) override;
     void removeBreakpoint(ErrorString*, const String16& breakpointId) override;
     void continueToLocation(ErrorString*,
-        std::unique_ptr<protocol::Debugger::Location>,
+        std::unique_ptr<inspector::protocol::Debugger::Location>,
         const Maybe<bool>& interstateLocationOpt) override;
     void getBacktrace(ErrorString*,
-        std::unique_ptr<protocol::Array<protocol::Debugger::CallFrame>>*,
-        Maybe<protocol::Runtime::StackTrace>*) override;
+        std::unique_ptr<inspector::protocol::Array<inspector::protocol::Debugger::CallFrame>>*,
+        Maybe<inspector::protocol::Runtime::StackTrace>*) override;
     void searchInContent(ErrorString*,
         const String16& scriptId,
         const String16& query,
         const Maybe<bool>& optionalCaseSensitive,
         const Maybe<bool>& optionalIsRegex,
-        std::unique_ptr<protocol::Array<protocol::Debugger::SearchMatch>>*) override;
+        std::unique_ptr<inspector::protocol::Array<inspector::protocol::Debugger::SearchMatch>>*) override;
     void canSetScriptSource(ErrorString*, bool* result) override { *result = true; }
     void setScriptSource(ErrorString*,
         const String16& inScriptId,
         const String16& inScriptSource,
         const Maybe<bool>& inPreview,
-        Maybe<protocol::Array<protocol::Debugger::CallFrame>>* optOutCallFrames,
+        Maybe<inspector::protocol::Array<inspector::protocol::Debugger::CallFrame>>* optOutCallFrames,
         Maybe<bool>* optOutStackChanged,
-        Maybe<protocol::Runtime::StackTrace>* optOutAsyncStackTrace,
-        Maybe<protocol::Debugger::SetScriptSourceError>* optOutCompileError) override;
+        Maybe<inspector::protocol::Runtime::StackTrace>* optOutAsyncStackTrace,
+        Maybe<inspector::protocol::Debugger::SetScriptSourceError>* optOutCompileError) override;
     void restartFrame(ErrorString*,
         const String16& callFrameId,
-        std::unique_ptr<protocol::Array<protocol::Debugger::CallFrame>>* newCallFrames,
-        Maybe<protocol::Runtime::StackTrace>* asyncStackTrace) override;
+        std::unique_ptr<inspector::protocol::Array<inspector::protocol::Debugger::CallFrame>>* newCallFrames,
+        Maybe<inspector::protocol::Runtime::StackTrace>* asyncStackTrace) override;
     void getScriptSource(ErrorString*, const String16& scriptId, String16* scriptSource) override;
     void getFunctionDetails(ErrorString*,
         const String16& functionId,
-        std::unique_ptr<protocol::Debugger::FunctionDetails>*) override;
+        std::unique_ptr<inspector::protocol::Debugger::FunctionDetails>*) override;
     void getGeneratorObjectDetails(ErrorString*,
         const String16& objectId,
-        std::unique_ptr<protocol::Debugger::GeneratorObjectDetails>*) override;
+        std::unique_ptr<inspector::protocol::Debugger::GeneratorObjectDetails>*) override;
     void getCollectionEntries(ErrorString*,
         const String16& objectId,
-        std::unique_ptr<protocol::Array<protocol::Debugger::CollectionEntry>>*) override;
+        std::unique_ptr<inspector::protocol::Array<inspector::protocol::Debugger::CollectionEntry>>*) override;
     void pause(ErrorString*) override;
     void resume(ErrorString*) override;
     void stepOver(ErrorString*) override;
@@ -113,30 +115,30 @@ public:
         const Maybe<bool>& doNotPauseOnExceptionsAndMuteConsole,
         const Maybe<bool>& returnByValue,
         const Maybe<bool>& generatePreview,
-        std::unique_ptr<protocol::Runtime::RemoteObject>* result,
+        std::unique_ptr<inspector::protocol::Runtime::RemoteObject>* result,
         Maybe<bool>* wasThrown,
-        Maybe<protocol::Runtime::ExceptionDetails>*) override;
+        Maybe<inspector::protocol::Runtime::ExceptionDetails>*) override;
     void setVariableValue(ErrorString*,
         int scopeNumber,
         const String16& variableName,
-        std::unique_ptr<protocol::Runtime::CallArgument> newValue,
+        std::unique_ptr<inspector::protocol::Runtime::CallArgument> newValue,
         const String16& callFrame) override;
     void setAsyncCallStackDepth(ErrorString*, int depth) override;
     void setBlackboxPatterns(ErrorString*,
-        std::unique_ptr<protocol::Array<String16>> patterns) override;
+        std::unique_ptr<inspector::protocol::Array<String16>> patterns) override;
     void setBlackboxedRanges(ErrorString*,
         const String16& scriptId,
-        std::unique_ptr<protocol::Array<protocol::Debugger::ScriptPosition>> positions) override;
+        std::unique_ptr<inspector::protocol::Array<inspector::protocol::Debugger::ScriptPosition>> positions) override;
 
     bool enabled();
     V8DebuggerImpl& debugger() { return *m_debugger; }
 
     void setBreakpointAt(const String16& scriptId, int lineNumber, int columnNumber, BreakpointSource, const String16& condition = String16());
     void removeBreakpointAt(const String16& scriptId, int lineNumber, int columnNumber, BreakpointSource);
-    void schedulePauseOnNextStatement(const String16& breakReason, std::unique_ptr<protocol::DictionaryValue> data);
+    void schedulePauseOnNextStatement(const String16& breakReason, std::unique_ptr<inspector::protocol::DictionaryValue> data);
     void cancelPauseOnNextStatement();
-    void breakProgram(const String16& breakReason, std::unique_ptr<protocol::DictionaryValue> data);
-    void breakProgramOnException(const String16& breakReason, std::unique_ptr<protocol::DictionaryValue> data);
+    void breakProgram(const String16& breakReason, std::unique_ptr<inspector::protocol::DictionaryValue> data);
+    void breakProgramOnException(const String16& breakReason, std::unique_ptr<inspector::protocol::DictionaryValue> data);
 
     // Async call stacks implementation.
     void asyncTaskScheduled(const String16& taskName, void* task, bool recurring);
@@ -148,7 +150,7 @@ public:
     void reset();
 
     // Interface for V8DebuggerImpl
-    SkipPauseRequest didPause(v8::Local<v8::Context>, v8::Local<v8::Value> exception, const protocol::Vector<String16>& hitBreakpoints, bool isPromiseRejection);
+    SkipPauseRequest didPause(v8::Local<v8::Context>, v8::Local<v8::Value> exception, const inspector::protocol::Vector<String16>& hitBreakpoints, bool isPromiseRejection);
     void didContinue();
     void didParseSource(const V8DebuggerParsedScript&);
     bool v8AsyncTaskEventsEnabled() const;
@@ -169,14 +171,14 @@ private:
 
     void schedulePauseOnNextStatementIfSteppingInto();
 
-    std::unique_ptr<protocol::Array<protocol::Debugger::CallFrame>> currentCallFrames(ErrorString*);
-    std::unique_ptr<protocol::Runtime::StackTrace> currentAsyncStackTrace();
+    std::unique_ptr<inspector::protocol::Array<inspector::protocol::Debugger::CallFrame>> currentCallFrames(ErrorString*);
+    std::unique_ptr<inspector::protocol::Runtime::StackTrace> currentAsyncStackTrace();
 
     void changeJavaScriptRecursionLevel(int step);
 
     void setPauseOnExceptionsImpl(ErrorString*, int);
 
-    std::unique_ptr<protocol::Debugger::Location> resolveBreakpoint(const String16& breakpointId, const String16& scriptId, const ScriptBreakpoint&, BreakpointSource);
+    std::unique_ptr<inspector::protocol::Debugger::Location> resolveBreakpoint(const String16& breakpointId, const String16& scriptId, const ScriptBreakpoint&, BreakpointSource);
     void removeBreakpoint(const String16& breakpointId);
     bool assertPaused(ErrorString*);
     void clearBreakDetails();
@@ -190,10 +192,10 @@ private:
 
     bool setBlackboxPattern(ErrorString*, const String16& pattern);
 
-    using ScriptsMap = protocol::HashMap<String16, V8DebuggerScript>;
-    using BreakpointIdToDebuggerBreakpointIdsMap = protocol::HashMap<String16, protocol::Vector<String16>>;
-    using DebugServerBreakpointToBreakpointIdAndSourceMap = protocol::HashMap<String16, std::pair<String16, BreakpointSource>>;
-    using MuteBreakpoins = protocol::HashMap<String16, std::pair<String16, int>>;
+    using ScriptsMap = inspector::protocol::HashMap<String16, V8DebuggerScript>;
+    using BreakpointIdToDebuggerBreakpointIdsMap = inspector::protocol::HashMap<String16, inspector::protocol::Vector<String16>>;
+    using DebugServerBreakpointToBreakpointIdAndSourceMap = inspector::protocol::HashMap<String16, std::pair<String16, BreakpointSource>>;
+    using MuteBreakpoins = inspector::protocol::HashMap<String16, std::pair<String16, int>>;
 
     enum DebuggerStep {
         NoStep = 0,
@@ -205,8 +207,8 @@ private:
     V8DebuggerImpl* m_debugger;
     V8InspectorSessionImpl* m_session;
     bool m_enabled;
-    protocol::DictionaryValue* m_state;
-    protocol::Debugger::Frontend m_frontend;
+    inspector::protocol::DictionaryValue* m_state;
+    inspector::protocol::Debugger::Frontend m_frontend;
     v8::Isolate* m_isolate;
     v8::Global<v8::Context> m_pausedContext;
     JavaScriptCallFrames m_pausedCallFrames;
@@ -215,7 +217,7 @@ private:
     DebugServerBreakpointToBreakpointIdAndSourceMap m_serverBreakpoints;
     String16 m_continueToLocationBreakpointId;
     String16 m_breakReason;
-    std::unique_ptr<protocol::DictionaryValue> m_breakAuxData;
+    std::unique_ptr<inspector::protocol::DictionaryValue> m_breakAuxData;
     DebuggerStep m_scheduledDebuggerStep;
     bool m_skipNextDebuggerStepOut;
     bool m_javaScriptPauseScheduled;
@@ -227,14 +229,14 @@ private:
     int m_recursionLevelForStepFrame;
     bool m_skipAllPauses;
 
-    using AsyncTaskToStackTrace = protocol::HashMap<void*, std::unique_ptr<V8StackTraceImpl>>;
+    using AsyncTaskToStackTrace = inspector::protocol::HashMap<void*, std::unique_ptr<V8StackTraceImpl>>;
     AsyncTaskToStackTrace m_asyncTaskStacks;
-    protocol::HashSet<void*> m_recurringTasks;
+    inspector::protocol::HashSet<void*> m_recurringTasks;
     int m_maxAsyncCallStackDepth;
-    protocol::Vector<void*> m_currentTasks;
-    protocol::Vector<std::unique_ptr<V8StackTraceImpl>> m_currentStacks;
+    inspector::protocol::Vector<void*> m_currentTasks;
+    inspector::protocol::Vector<std::unique_ptr<V8StackTraceImpl>> m_currentStacks;
     std::unique_ptr<V8Regex> m_blackboxPattern;
-    protocol::HashMap<String16, protocol::Vector<std::pair<int, int>>> m_blackboxedPositions;
+    inspector::protocol::HashMap<String16, inspector::protocol::Vector<std::pair<int, int>>> m_blackboxedPositions;
 };
 
 } // namespace blink

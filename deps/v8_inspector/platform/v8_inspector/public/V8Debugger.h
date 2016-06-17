@@ -10,6 +10,13 @@
 
 #include <v8.h>
 
+namespace inspector {
+namespace protocol {
+class DictionaryValue;
+class FrontendChannel;
+}
+}
+
 namespace blink {
 
 class V8ContextInfo;
@@ -18,10 +25,6 @@ class V8InspectorSession;
 class V8InspectorSessionClient;
 class V8StackTrace;
 
-namespace protocol {
-class DictionaryValue;
-class FrontendChannel;
-}
 
 class PLATFORM_EXPORT V8Debugger {
 public:
@@ -40,7 +43,7 @@ public:
     virtual void idleStarted() = 0;
     virtual void idleFinished() = 0;
 
-    virtual std::unique_ptr<V8InspectorSession> connect(int contextGroupId, protocol::FrontendChannel*, V8InspectorSessionClient*, const String16* state) = 0;
+    virtual std::unique_ptr<V8InspectorSession> connect(int contextGroupId, inspector::protocol::FrontendChannel*, V8InspectorSessionClient*, const String16* state) = 0;
     virtual bool isPaused() = 0;
 
     virtual std::unique_ptr<V8StackTrace> createStackTrace(v8::Local<v8::StackTrace>) = 0;

@@ -8,7 +8,7 @@
 
 #include "platform/inspector_protocol/DispatcherBase.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 namespace {{domain.domain}} {
 
@@ -297,4 +297,4 @@ void Dispatcher::wire(UberDispatcher* dispatcher, Backend* backend)
 
 } // {{domain.domain}}
 } // namespace protocol
-} // namespace blink
+} // namespace inspector

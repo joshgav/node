@@ -10,7 +10,7 @@
 #include "platform/inspector_protocol/Platform.h"
 #include "platform/inspector_protocol/String16.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 class ListValue;
@@ -215,6 +215,6 @@ private:
 };
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector
 
 #endif // Values_h

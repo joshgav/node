@@ -33,6 +33,7 @@
 #include "platform/inspector_protocol/Parser.h"
 #include "platform/inspector_protocol/String16.h"
 #include "platform/inspector_protocol/Values.h"
+
 #include "platform/v8_inspector/InjectedScriptNative.h"
 #include "platform/v8_inspector/InjectedScriptSource.h"
 #include "platform/v8_inspector/InspectedContext.h"
@@ -49,15 +50,15 @@
 #include "platform/v8_inspector/public/V8DebuggerClient.h"
 #include "platform/v8_inspector/public/V8ToProtocolValue.h"
 
-using blink::protocol::Array;
-using blink::protocol::Debugger::CallFrame;
-using blink::protocol::Debugger::CollectionEntry;
-using blink::protocol::Debugger::FunctionDetails;
-using blink::protocol::Debugger::GeneratorObjectDetails;
-using blink::protocol::Runtime::PropertyDescriptor;
-using blink::protocol::Runtime::InternalPropertyDescriptor;
-using blink::protocol::Runtime::RemoteObject;
-using blink::protocol::Maybe;
+using inspector::protocol::Array;
+using inspector::protocol::Debugger::CallFrame;
+using inspector::protocol::Debugger::CollectionEntry;
+using inspector::protocol::Debugger::FunctionDetails;
+using inspector::protocol::Debugger::GeneratorObjectDetails;
+using inspector::protocol::Runtime::PropertyDescriptor;
+using inspector::protocol::Runtime::InternalPropertyDescriptor;
+using inspector::protocol::Runtime::RemoteObject;
+using inspector::protocol::Maybe;
 
 namespace blink {
 
@@ -112,7 +113,7 @@ InjectedScript::~InjectedScript()
 {
 }
 
-void InjectedScript::getProperties(ErrorString* errorString, v8::Local<v8::Object> object, const String16& groupName, bool ownProperties, bool accessorPropertiesOnly, bool generatePreview, std::unique_ptr<Array<PropertyDescriptor>>* properties, Maybe<protocol::Runtime::ExceptionDetails>* exceptionDetails)
+void InjectedScript::getProperties(ErrorString* errorString, v8::Local<v8::Object> object, const String16& groupName, bool ownProperties, bool accessorPropertiesOnly, bool generatePreview, std::unique_ptr<Array<PropertyDescriptor>>* properties, Maybe<inspector::protocol::Runtime::ExceptionDetails>* exceptionDetails)
 {
     v8::HandleScope handles(m_context->isolate());
     V8FunctionCall function(m_context->debugger(), m_context->context(), v8Value(), "getProperties");
@@ -131,10 +132,10 @@ void InjectedScript::getProperties(ErrorString* errorString, v8::Local<v8::Objec
         return;
     }
 
-    std::unique_ptr<protocol::Value> protocolValue = toProtocolValue(function.context(), resultValue);
+    std::unique_ptr<inspector::protocol::Value> protocolValue = toProtocolValue(function.context(), resultValue);
     if (hasInternalError(errorString, !protocolValue))
         return;
-    protocol::ErrorSupport errors(errorString);
+    inspector::protocol::ErrorSupport errors(errorString);
     std::unique_ptr<Array<PropertyDescriptor>> result = Array<PropertyDescriptor>::parse(protocolValue.get(), &errors);
     if (!hasInternalError(errorString, errors.hasErrors()))
         *properties = std::move(result);
@@ -142,10 +143,10 @@ void InjectedScript::getProperties(ErrorString* errorString, v8::Local<v8::Objec
 
 void InjectedScript::releaseObject(const String16& objectId)
 {
-    std::unique_ptr<protocol::Value> parsedObjectId = protocol::parseJSON(objectId);
+    std::unique_ptr<inspector::protocol::Value> parsedObjectId = inspector::protocol::parseJSON(objectId);
     if (!parsedObjectId)
         return;
-    protocol::DictionaryValue* object = protocol::DictionaryValue::cast(parsedObjectId.get());
+    inspector::protocol::DictionaryValue* object = inspector::protocol::DictionaryValue::cast(parsedObjectId.get());
     if (!object)
         return;
     int boundId = 0;
@@ -154,14 +155,14 @@ void InjectedScript::releaseObject(const String16& objectId)
     m_native->unbind(boundId);
 }
 
-std::unique_ptr<protocol::Runtime::RemoteObject> InjectedScript::wrapObject(ErrorString* errorString, v8::Local<v8::Value> value, const String16& groupName, bool forceValueType, bool generatePreview) const
+std::unique_ptr<inspector::protocol::Runtime::RemoteObject> InjectedScript::wrapObject(ErrorString* errorString, v8::Local<v8::Value> value, const String16& groupName, bool forceValueType, bool generatePreview) const
 {
     v8::HandleScope handles(m_context->isolate());
     v8::Local<v8::Value> wrappedObject;
     if (!wrapValue(errorString, value, groupName, forceValueType, generatePreview).ToLocal(&wrappedObject))
         return nullptr;
-    protocol::ErrorSupport errors;
-    std::unique_ptr<protocol::Runtime::RemoteObject> remoteObject = protocol::Runtime::RemoteObject::parse(toProtocolValue(m_context->context(), wrappedObject).get(), &errors);
+    inspector::protocol::ErrorSupport errors;
+    std::unique_ptr<inspector::protocol::Runtime::RemoteObject> remoteObject = inspector::protocol::Runtime::RemoteObject::parse(toProtocolValue(m_context->context(), wrappedObject).get(), &errors);
     if (!remoteObject)
         *errorString = "Object has too long reference chain";
     return remoteObject;
@@ -223,7 +224,7 @@ v8::MaybeLocal<v8::Value> InjectedScript::wrapValue(ErrorString* errorString, v8
     return r;
 }
 
-std::unique_ptr<protocol::Runtime::RemoteObject> InjectedScript::wrapTable(v8::Local<v8::Value> table, v8::Local<v8::Value> columns) const
+std::unique_ptr<inspector::protocol::Runtime::RemoteObject> InjectedScript::wrapTable(v8::Local<v8::Value> table, v8::Local<v8::Value> columns) const
 {
     v8::HandleScope handles(m_context->isolate());
     V8FunctionCall function(m_context->debugger(), m_context->context(), v8Value(), "wrapTable");
@@ -237,8 +238,8 @@ std::unique_ptr<protocol::Runtime::RemoteObject> InjectedScript::wrapTable(v8::L
     v8::Local<v8::Value>  r = function.call(hadException);
     if (hadException)
         return nullptr;
-    protocol::ErrorSupport errors;
-    return protocol::Runtime::RemoteObject::parse(toProtocolValue(m_context->context(), r).get(), &errors);
+    inspector::protocol::ErrorSupport errors;
+    return inspector::protocol::Runtime::RemoteObject::parse(toProtocolValue(m_context->context(), r).get(), &errors);
 }
 
 bool InjectedScript::findObject(ErrorString* errorString, const RemoteObjectId& objectId, v8::Local<v8::Value>* outObject) const
@@ -291,7 +292,7 @@ v8::Local<v8::Value> InjectedScript::lastEvaluationResult() const
     return m_lastEvaluationResult.Get(m_context->isolate());
 }
 
-v8::MaybeLocal<v8::Value> InjectedScript::resolveCallArgument(ErrorString* errorString, protocol::Runtime::CallArgument* callArgument)
+v8::MaybeLocal<v8::Value> InjectedScript::resolveCallArgument(ErrorString* errorString, inspector::protocol::Runtime::CallArgument* callArgument)
 {
     if (callArgument->hasObjectId()) {
         std::unique_ptr<RemoteObjectId> remoteObjectId = RemoteObjectId::parse(errorString, callArgument->getObjectId(""));
@@ -320,9 +321,9 @@ v8::MaybeLocal<v8::Value> InjectedScript::resolveCallArgument(ErrorString* error
     return v8::Undefined(m_context->isolate());
 }
 
-std::unique_ptr<protocol::Runtime::ExceptionDetails> InjectedScript::createExceptionDetails(v8::Local<v8::Message> message)
+std::unique_ptr<inspector::protocol::Runtime::ExceptionDetails> InjectedScript::createExceptionDetails(v8::Local<v8::Message> message)
 {
-    std::unique_ptr<protocol::Runtime::ExceptionDetails> exceptionDetailsObject = protocol::Runtime::ExceptionDetails::create().setText(toProtocolString(message->Get())).build();
+    std::unique_ptr<inspector::protocol::Runtime::ExceptionDetails> exceptionDetailsObject = inspector::protocol::Runtime::ExceptionDetails::create().setText(toProtocolString(message->Get())).build();
     exceptionDetailsObject->setUrl(toProtocolStringWithTypeCheck(message->GetScriptResourceName()));
     exceptionDetailsObject->setScriptId(String16::number(message->GetScriptOrigin().ScriptID()->Value()));
 
@@ -339,7 +340,7 @@ std::unique_ptr<protocol::Runtime::ExceptionDetails> InjectedScript::createExcep
     return exceptionDetailsObject;
 }
 
-void InjectedScript::wrapEvaluateResult(ErrorString* errorString, v8::MaybeLocal<v8::Value> maybeResultValue, const v8::TryCatch& tryCatch, const String16& objectGroup, bool returnByValue, bool generatePreview, std::unique_ptr<protocol::Runtime::RemoteObject>* result, Maybe<bool>* wasThrown, Maybe<protocol::Runtime::ExceptionDetails>* exceptionDetails)
+void InjectedScript::wrapEvaluateResult(ErrorString* errorString, v8::MaybeLocal<v8::Value> maybeResultValue, const v8::TryCatch& tryCatch, const String16& objectGroup, bool returnByValue, bool generatePreview, std::unique_ptr<inspector::protocol::Runtime::RemoteObject>* result, Maybe<bool>* wasThrown, Maybe<inspector::protocol::Runtime::ExceptionDetails>* exceptionDetails)
 {
     v8::Local<v8::Value> resultValue;
     if (!tryCatch.HasCaught()) {

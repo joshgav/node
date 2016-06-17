@@ -9,7 +9,7 @@
 #include "platform/inspector_protocol/Platform.h"
 #include "platform/inspector_protocol/Values.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 class PLATFORM_EXPORT Object {
@@ -25,6 +25,6 @@ private:
 };
 
 } // namespace platform
-} // namespace blink
+} // namespace inspector
 
 #endif // !defined(Object_h)

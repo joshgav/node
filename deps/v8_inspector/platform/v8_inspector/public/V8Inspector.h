@@ -2,37 +2,41 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8Inspector_h
-#define V8Inspector_h
+#ifndef V8_INSPECTOR_H
+#define V8_INSPECTOR_H
 
+#include "platform/inspector_protocol/Inspector.h"
 #include "platform/inspector_protocol/Platform.h"
+
 #include "platform/v8_inspector/public/V8DebuggerClient.h"
 #include "platform/v8_inspector/public/V8InspectorSession.h"
 #include "platform/v8_inspector/public/V8InspectorSessionClient.h"
 
 #include <v8.h>
 
-namespace blink {
-
+namespace inspector {
 namespace protocol {
 class Dispatcher;
 class Frontend;
 class FrontendChannel;
 }
+}
+
+namespace blink {
 
 class V8Debugger;
 class V8HeapProfilerAgent;
 class V8ProfilerAgent;
 
-class V8Inspector : public V8DebuggerClient, V8InspectorSessionClient {
+class V8Inspector : public inspector::Inspector, V8DebuggerClient, V8InspectorSessionClient {
 public:
     V8Inspector(v8::Isolate*, v8::Local<v8::Context>);
     ~V8Inspector();
 
-    // Transport interface.
-    void connectFrontend(protocol::FrontendChannel*);
-    void disconnectFrontend();
-    void dispatchMessageFromFrontend(const String16& message);
+    // Transport interface inherited from Inspector.
+    void connectFrontend(inspector::protocol::FrontendChannel*) override;
+    void disconnectFrontend() override;
+    void dispatchMessageFromFrontend(const String16& message) override;
 
 private:
     bool callingContextCanAccessContext(v8::Local<v8::Context> calling, v8::Local<v8::Context> target) override;

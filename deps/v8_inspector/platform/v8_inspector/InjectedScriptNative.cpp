@@ -68,7 +68,7 @@ void InjectedScriptNative::addObjectToGroup(int objectId, const String16& groupN
     m_idToObjectGroupName.set(objectId, groupName);
     auto it = m_nameToObjectGroup.find(groupName);
     if (it == m_nameToObjectGroup.end()) {
-        m_nameToObjectGroup.set(groupName, protocol::Vector<int>());
+        m_nameToObjectGroup.set(groupName, inspector::protocol::Vector<int>());
         it = m_nameToObjectGroup.find(groupName);
     }
     it->second->append(objectId);

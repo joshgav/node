@@ -12,7 +12,7 @@
 #include <functional>
 #include <locale>
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 const UChar replacementCharacter = 0xFFFD;
@@ -599,4 +599,4 @@ String16 String16::stripWhiteSpace() const
 }
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector

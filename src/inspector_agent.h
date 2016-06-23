@@ -18,6 +18,7 @@ namespace node {
 namespace inspector {
 
 class AgentImpl;
+class NodeInspector;
 
 class Agent {
  public:

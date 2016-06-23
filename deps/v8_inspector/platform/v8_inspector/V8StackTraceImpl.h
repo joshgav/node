@@ -35,7 +35,7 @@ public:
 
     private:
         friend class V8StackTraceImpl;
-        std::unique_ptr<protocol::Runtime::CallFrame> buildInspectorObject() const;
+        std::unique_ptr<inspector::protocol::Runtime::CallFrame> buildInspectorObject() const;
         void toTracedValue(TracedValue*) const;
 
         String16 m_functionName;
@@ -52,7 +52,7 @@ public:
     std::unique_ptr<V8StackTraceImpl> cloneImpl();
     std::unique_ptr<V8StackTrace> isolatedCopy() override;
     std::unique_ptr<V8StackTraceImpl> isolatedCopyImpl();
-    std::unique_ptr<protocol::Runtime::StackTrace> buildInspectorObjectForTail(V8DebuggerAgentImpl*) const;
+    std::unique_ptr<inspector::protocol::Runtime::StackTrace> buildInspectorObjectForTail(V8DebuggerAgentImpl*) const;
     ~V8StackTraceImpl() override;
 
     // V8StackTrace implementation.
@@ -62,14 +62,14 @@ public:
     int topColumnNumber() const override;
     String16 topScriptId() const override;
     String16 topFunctionName() const override;
-    std::unique_ptr<protocol::Runtime::StackTrace> buildInspectorObject() const override;
+    std::unique_ptr<inspector::protocol::Runtime::StackTrace> buildInspectorObject() const override;
     String16 toString() const override;
 
 private:
-    V8StackTraceImpl(const String16& description, protocol::Vector<Frame>& frames, std::unique_ptr<V8StackTraceImpl> parent);
+    V8StackTraceImpl(const String16& description, inspector::protocol::Vector<Frame>& frames, std::unique_ptr<V8StackTraceImpl> parent);
 
     String16 m_description;
-    protocol::Vector<Frame> m_frames;
+    inspector::protocol::Vector<Frame> m_frames;
     std::unique_ptr<V8StackTraceImpl> m_parent;
 };
 

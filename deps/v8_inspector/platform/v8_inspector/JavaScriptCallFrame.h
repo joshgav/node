@@ -67,7 +67,7 @@ private:
     v8::Global<v8::Object> m_callFrame;
 };
 
-using JavaScriptCallFrames = protocol::Vector<std::unique_ptr<JavaScriptCallFrame>>;
+using JavaScriptCallFrames = inspector::protocol::Vector<std::unique_ptr<JavaScriptCallFrame>>;
 
 } // namespace blink
 

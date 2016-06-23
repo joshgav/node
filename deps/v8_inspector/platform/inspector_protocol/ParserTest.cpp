@@ -8,7 +8,7 @@
 #include "platform/inspector_protocol/Values.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 TEST(ParserTest, Reading)
@@ -501,4 +501,4 @@ TEST(ParserTest, InvalidSanity)
 }
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector

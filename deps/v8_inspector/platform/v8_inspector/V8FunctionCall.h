@@ -58,7 +58,7 @@ public:
 protected:
     V8DebuggerImpl* m_debugger;
     v8::Local<v8::Context> m_context;
-    protocol::Vector<v8::Local<v8::Value>> m_arguments;
+    inspector::protocol::Vector<v8::Local<v8::Value>> m_arguments;
     v8::Local<v8::String> m_name;
     v8::Local<v8::Value> m_value;
 };

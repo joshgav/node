@@ -21,17 +21,17 @@ static const char profilerEnabled[] = "profilerEnabled";
 
 namespace {
 
-std::unique_ptr<protocol::Array<protocol::Profiler::PositionTickInfo>> buildInspectorObjectForPositionTicks(const v8::CpuProfileNode* node)
+std::unique_ptr<inspector::protocol::Array<inspector::protocol::Profiler::PositionTickInfo>> buildInspectorObjectForPositionTicks(const v8::CpuProfileNode* node)
 {
-    std::unique_ptr<protocol::Array<protocol::Profiler::PositionTickInfo>> array = protocol::Array<protocol::Profiler::PositionTickInfo>::create();
+    std::unique_ptr<inspector::protocol::Array<inspector::protocol::Profiler::PositionTickInfo>> array = inspector::protocol::Array<inspector::protocol::Profiler::PositionTickInfo>::create();
     unsigned lineCount = node->GetHitLineCount();
     if (!lineCount)
         return array;
 
-    protocol::Vector<v8::CpuProfileNode::LineTick> entries(lineCount);
+    inspector::protocol::Vector<v8::CpuProfileNode::LineTick> entries(lineCount);
     if (node->GetLineTicks(&entries[0], lineCount)) {
         for (unsigned i = 0; i < lineCount; i++) {
-            std::unique_ptr<protocol::Profiler::PositionTickInfo> line = protocol::Profiler::PositionTickInfo::create()
+            std::unique_ptr<inspector::protocol::Profiler::PositionTickInfo> line = inspector::protocol::Profiler::PositionTickInfo::create()
                 .setLine(entries[i].line)
                 .setTicks(entries[i].hit_count).build();
             array->addItem(std::move(line));
@@ -41,20 +41,20 @@ std::unique_ptr<protocol::Array<protocol::Profiler::PositionTickInfo>> buildInsp
     return array;
 }
 
-std::unique_ptr<protocol::Profiler::CPUProfileNode> buildInspectorObjectFor(v8::Isolate* isolate, const v8::CpuProfileNode* node)
+std::unique_ptr<inspector::protocol::Profiler::CPUProfileNode> buildInspectorObjectFor(v8::Isolate* isolate, const v8::CpuProfileNode* node)
 {
     v8::HandleScope handleScope(isolate);
 
-    std::unique_ptr<protocol::Array<protocol::Profiler::CPUProfileNode>> children = protocol::Array<protocol::Profiler::CPUProfileNode>::create();
+    std::unique_ptr<inspector::protocol::Array<inspector::protocol::Profiler::CPUProfileNode>> children = inspector::protocol::Array<inspector::protocol::Profiler::CPUProfileNode>::create();
     const int childrenCount = node->GetChildrenCount();
     for (int i = 0; i < childrenCount; i++) {
         const v8::CpuProfileNode* child = node->GetChild(i);
         children->addItem(buildInspectorObjectFor(isolate, child));
     }
 
-    std::unique_ptr<protocol::Array<protocol::Profiler::PositionTickInfo>> positionTicks = buildInspectorObjectForPositionTicks(node);
+    std::unique_ptr<inspector::protocol::Array<inspector::protocol::Profiler::PositionTickInfo>> positionTicks = buildInspectorObjectForPositionTicks(node);
 
-    std::unique_ptr<protocol::Profiler::CPUProfileNode> result = protocol::Profiler::CPUProfileNode::create()
+    std::unique_ptr<inspector::protocol::Profiler::CPUProfileNode> result = inspector::protocol::Profiler::CPUProfileNode::create()
         .setFunctionName(toProtocolString(node->GetFunctionName()))
         .setScriptId(String16::number(node->GetScriptId()))
         .setUrl(toProtocolString(node->GetScriptResourceName()))
@@ -69,27 +69,27 @@ std::unique_ptr<protocol::Profiler::CPUProfileNode> buildInspectorObjectFor(v8::
     return result;
 }
 
-std::unique_ptr<protocol::Array<int>> buildInspectorObjectForSamples(v8::CpuProfile* v8profile)
+std::unique_ptr<inspector::protocol::Array<int>> buildInspectorObjectForSamples(v8::CpuProfile* v8profile)
 {
-    std::unique_ptr<protocol::Array<int>> array = protocol::Array<int>::create();
+    std::unique_ptr<inspector::protocol::Array<int>> array = inspector::protocol::Array<int>::create();
     int count = v8profile->GetSamplesCount();
     for (int i = 0; i < count; i++)
         array->addItem(v8profile->GetSample(i)->GetNodeId());
     return array;
 }
 
-std::unique_ptr<protocol::Array<double>> buildInspectorObjectForTimestamps(v8::CpuProfile* v8profile)
+std::unique_ptr<inspector::protocol::Array<double>> buildInspectorObjectForTimestamps(v8::CpuProfile* v8profile)
 {
-    std::unique_ptr<protocol::Array<double>> array = protocol::Array<double>::create();
+    std::unique_ptr<inspector::protocol::Array<double>> array = inspector::protocol::Array<double>::create();
     int count = v8profile->GetSamplesCount();
     for (int i = 0; i < count; i++)
         array->addItem(v8profile->GetSampleTimestamp(i));
     return array;
 }
 
-std::unique_ptr<protocol::Profiler::CPUProfile> createCPUProfile(v8::Isolate* isolate, v8::CpuProfile* v8profile)
+std::unique_ptr<inspector::protocol::Profiler::CPUProfile> createCPUProfile(v8::Isolate* isolate, v8::CpuProfile* v8profile)
 {
-    std::unique_ptr<protocol::Profiler::CPUProfile> profile = protocol::Profiler::CPUProfile::create()
+    std::unique_ptr<inspector::protocol::Profiler::CPUProfile> profile = inspector::protocol::Profiler::CPUProfile::create()
         .setHead(buildInspectorObjectFor(isolate, v8profile->GetTopDownRoot()))
         .setStartTime(static_cast<double>(v8profile->GetStartTime()) / 1000000)
         .setEndTime(static_cast<double>(v8profile->GetEndTime()) / 1000000).build();
@@ -98,10 +98,10 @@ std::unique_ptr<protocol::Profiler::CPUProfile> createCPUProfile(v8::Isolate* is
     return profile;
 }
 
-std::unique_ptr<protocol::Debugger::Location> currentDebugLocation(V8DebuggerImpl* debugger)
+std::unique_ptr<inspector::protocol::Debugger::Location> currentDebugLocation(V8DebuggerImpl* debugger)
 {
     std::unique_ptr<V8StackTrace> callStack = debugger->captureStackTrace(1);
-    std::unique_ptr<protocol::Debugger::Location> location = protocol::Debugger::Location::create()
+    std::unique_ptr<inspector::protocol::Debugger::Location> location = inspector::protocol::Debugger::Location::create()
         .setScriptId(callStack->topScriptId())
         .setLineNumber(callStack->topLineNumber()).build();
     location->setColumnNumber(callStack->topColumnNumber());
@@ -121,7 +121,7 @@ public:
     String16 m_title;
 };
 
-V8ProfilerAgentImpl::V8ProfilerAgentImpl(V8InspectorSessionImpl* session, protocol::FrontendChannel* frontendChannel, protocol::DictionaryValue* state)
+V8ProfilerAgentImpl::V8ProfilerAgentImpl(V8InspectorSessionImpl* session, inspector::protocol::FrontendChannel* frontendChannel, inspector::protocol::DictionaryValue* state)
     : m_session(session)
     , m_isolate(m_session->debugger()->isolate())
     , m_state(state)
@@ -170,10 +170,10 @@ void V8ProfilerAgentImpl::consoleProfileEnd(const String16& title)
         if (id.isEmpty())
             return;
     }
-    std::unique_ptr<protocol::Profiler::CPUProfile> profile = stopProfiling(id, true);
+    std::unique_ptr<inspector::protocol::Profiler::CPUProfile> profile = stopProfiling(id, true);
     if (!profile)
         return;
-    std::unique_ptr<protocol::Debugger::Location> location = currentDebugLocation(m_session->debugger());
+    std::unique_ptr<inspector::protocol::Debugger::Location> location = currentDebugLocation(m_session->debugger());
     m_frontend.consoleProfileFinished(id, std::move(location), std::move(profile), resolvedTitle);
 }
 
@@ -241,7 +241,7 @@ void V8ProfilerAgentImpl::start(ErrorString* error)
     m_session->client()->profilingStarted();
 }
 
-void V8ProfilerAgentImpl::stop(ErrorString* errorString, std::unique_ptr<protocol::Profiler::CPUProfile>* profile)
+void V8ProfilerAgentImpl::stop(ErrorString* errorString, std::unique_ptr<inspector::protocol::Profiler::CPUProfile>* profile)
 {
     if (!m_recordingCPUProfile) {
         if (errorString)
@@ -249,7 +249,7 @@ void V8ProfilerAgentImpl::stop(ErrorString* errorString, std::unique_ptr<protoco
         return;
     }
     m_recordingCPUProfile = false;
-    std::unique_ptr<protocol::Profiler::CPUProfile> cpuProfile = stopProfiling(m_frontendInitiatedProfileId, !!profile);
+    std::unique_ptr<inspector::protocol::Profiler::CPUProfile> cpuProfile = stopProfiling(m_frontendInitiatedProfileId, !!profile);
     if (profile) {
         *profile = std::move(cpuProfile);
         if (!profile->get() && errorString)
@@ -271,13 +271,13 @@ void V8ProfilerAgentImpl::startProfiling(const String16& title)
     m_isolate->GetCpuProfiler()->StartProfiling(toV8String(m_isolate, title), true);
 }
 
-std::unique_ptr<protocol::Profiler::CPUProfile> V8ProfilerAgentImpl::stopProfiling(const String16& title, bool serialize)
+std::unique_ptr<inspector::protocol::Profiler::CPUProfile> V8ProfilerAgentImpl::stopProfiling(const String16& title, bool serialize)
 {
     v8::HandleScope handleScope(m_isolate);
     v8::CpuProfile* profile = m_isolate->GetCpuProfiler()->StopProfiling(toV8String(m_isolate, title));
     if (!profile)
         return nullptr;
-    std::unique_ptr<protocol::Profiler::CPUProfile> result;
+    std::unique_ptr<inspector::protocol::Profiler::CPUProfile> result;
     if (serialize)
         result = createCPUProfile(m_isolate, profile);
     profile->Delete();

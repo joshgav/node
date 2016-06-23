@@ -359,7 +359,7 @@ void V8Console::assertCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
         return;
     helper.addMessage(AssertMessageType, ErrorMessageLevel, String16("console.assert"), 1);
     if (V8DebuggerAgentImpl* debuggerAgent = helper.debuggerAgent())
-        debuggerAgent->breakProgramOnException(protocol::Debugger::Paused::ReasonEnum::Assert, nullptr);
+        debuggerAgent->breakProgramOnException(inspector::protocol::Debugger::Paused::ReasonEnum::Assert, nullptr);
 }
 
 void V8Console::markTimelineCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -590,11 +590,11 @@ static void inspectImpl(const v8::FunctionCallbackInfo<v8::Value>& info, bool co
     if (!injectedScript)
         return;
     ErrorString errorString;
-    std::unique_ptr<protocol::Runtime::RemoteObject> wrappedObject = injectedScript->wrapObject(&errorString, info[0], "", false /** forceValueType */, false /** generatePreview */);
+    std::unique_ptr<inspector::protocol::Runtime::RemoteObject> wrappedObject = injectedScript->wrapObject(&errorString, info[0], "", false /** forceValueType */, false /** generatePreview */);
     if (!wrappedObject || !errorString.isEmpty())
         return;
 
-    std::unique_ptr<protocol::DictionaryValue> hints = protocol::DictionaryValue::create();
+    std::unique_ptr<inspector::protocol::DictionaryValue> hints = inspector::protocol::DictionaryValue::create();
     if (copyToClipboard)
         hints->setBoolean("copyToClipboard", true);
     if (V8InspectorSessionImpl* session = helper.currentSession())

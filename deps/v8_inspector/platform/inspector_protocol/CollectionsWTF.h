@@ -11,7 +11,7 @@
 #include "wtf/Vector.h"
 #include "wtf/VectorTraits.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 template <typename T>
@@ -188,6 +188,6 @@ public:
 };
 
 } // namespace platform
-} // namespace blink
+} // namespace inspector
 
 #endif // !defined(CollectionsWTF_h)

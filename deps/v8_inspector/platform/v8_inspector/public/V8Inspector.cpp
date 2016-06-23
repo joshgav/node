@@ -12,15 +12,15 @@
 
 namespace blink {
 
-V8Inspector::V8Inspector(v8::Isolate* isolate, v8::Local<v8::Context> context)
-{
+V8Inspector::V8Inspector(v8::Isolate* isolate, v8::Local<v8::Context> context) :
+    inspector::Inspector(isolate, context) {
+
     m_debugger = V8Debugger::create(isolate, this);
     m_debugger->contextCreated(V8ContextInfo(context, 1, true, "",
         "NodeJS Main Context", "", false));
 }
 
-V8Inspector::~V8Inspector()
-{
+V8Inspector::~V8Inspector() {
     disconnectFrontend();
 }
 
@@ -39,7 +39,7 @@ bool V8Inspector::formatAccessorsAsProperties(v8::Local<v8::Value> value)
     return false;
 }
 
-void V8Inspector::connectFrontend(protocol::FrontendChannel* channel)
+void V8Inspector::connectFrontend(inspector::protocol::FrontendChannel* channel)
 {
     m_session = m_debugger->connect(1, channel, this, &m_state);
 }

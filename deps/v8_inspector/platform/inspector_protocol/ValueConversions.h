@@ -10,7 +10,7 @@
 #include "platform/inspector_protocol/String16.h"
 #include "platform/inspector_protocol/Values.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 PLATFORM_EXPORT std::unique_ptr<protocol::Value> toValue(int value);
@@ -151,6 +151,6 @@ struct FromValue<protocol::Array<T>> {
 };
 
 } // namespace platform
-} // namespace blink
+} // namespace inspector
 
 #endif // !defined(ValueConversions_h)

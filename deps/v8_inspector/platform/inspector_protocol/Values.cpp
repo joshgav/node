@@ -8,7 +8,7 @@
 #include "platform/inspector_protocol/String16.h"
 #include <cmath>
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 namespace {
@@ -350,4 +350,4 @@ protocol::Value* ListValue::at(size_t index)
 }
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector

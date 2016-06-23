@@ -9,7 +9,7 @@
 #include "platform/inspector_protocol/Platform.h"
 #include "platform/inspector_protocol/String16.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 using ErrorString = String16;
@@ -34,8 +34,8 @@ private:
 };
 
 } // namespace platform
-} // namespace blink
+} // namespace inspector
 
-using blink::protocol::ErrorString;
+using inspector::protocol::ErrorString;
 
 #endif // !defined(ErrorSupport_h)

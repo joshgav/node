@@ -7,7 +7,7 @@
 #include "platform/inspector_protocol/String16.h"
 #include "platform/inspector_protocol/Values.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 namespace {
@@ -492,4 +492,4 @@ std::unique_ptr<Value> parseJSON(const String16& json)
 }
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector

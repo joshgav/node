@@ -9,11 +9,13 @@
 #include "platform/inspector_protocol/Platform.h"
 #include "platform/inspector_protocol/String16.h"
 
-namespace blink {
-
+namespace inspector {
 namespace protocol {
 class DictionaryValue;
 }
+}
+
+namespace blink {
 
 class RemoteObjectIdBase {
 public:
@@ -23,7 +25,7 @@ protected:
     RemoteObjectIdBase();
     ~RemoteObjectIdBase() { }
 
-    std::unique_ptr<protocol::DictionaryValue> parseInjectedScriptId(const String16&);
+    std::unique_ptr<inspector::protocol::DictionaryValue> parseInjectedScriptId(const String16&);
 
     int m_injectedScriptId;
 };

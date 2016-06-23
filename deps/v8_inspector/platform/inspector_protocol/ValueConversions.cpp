@@ -4,7 +4,7 @@
 
 #include "platform/inspector_protocol/ValueConversions.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 std::unique_ptr<protocol::Value> toValue(int value)
@@ -48,4 +48,4 @@ std::unique_ptr<protocol::Value> toValue(ListValue* param)
 }
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector

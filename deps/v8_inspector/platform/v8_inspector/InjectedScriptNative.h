@@ -12,6 +12,8 @@
 
 namespace blink {
 
+using namespace inspector;
+
 class InjectedScriptNative final {
 public:
     explicit InjectedScriptNative(v8::Isolate*);
@@ -32,10 +34,10 @@ private:
 
     int m_lastBoundObjectId;
     v8::Isolate* m_isolate;
-    protocol::HashMap<int, std::unique_ptr<v8::Global<v8::Value>>> m_idToWrappedObject;
-    typedef protocol::HashMap<int, String16> IdToObjectGroupName;
+    inspector::protocol::HashMap<int, std::unique_ptr<v8::Global<v8::Value>>> m_idToWrappedObject;
+    typedef inspector::protocol::HashMap<int, String16> IdToObjectGroupName;
     IdToObjectGroupName m_idToObjectGroupName;
-    typedef protocol::HashMap<String16, protocol::Vector<int>> NameToObjectGroup;
+    typedef inspector::protocol::HashMap<String16, inspector::protocol::Vector<int>> NameToObjectGroup;
     NameToObjectGroup m_nameToObjectGroup;
 };
 

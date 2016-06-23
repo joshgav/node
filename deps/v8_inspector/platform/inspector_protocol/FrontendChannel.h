@@ -7,7 +7,7 @@
 
 #include "platform/inspector_protocol/Values.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 class PLATFORM_EXPORT FrontendChannel {
@@ -19,6 +19,6 @@ public:
 };
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector
 
 #endif // !defined(FrontendChannel_h)

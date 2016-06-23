@@ -12,7 +12,7 @@
 #include <map>
 #include <vector>
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 template <typename T>
@@ -239,6 +239,6 @@ public:
 };
 
 } // namespace platform
-} // namespace blink
+} // namespace inspector
 
 #endif // !defined(CollectionsSTL_h)

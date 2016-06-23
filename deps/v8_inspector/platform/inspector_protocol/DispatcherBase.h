@@ -12,7 +12,7 @@
 #include "platform/inspector_protocol/String16.h"
 #include "platform/inspector_protocol/Values.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 class FrontendChannel;
@@ -92,6 +92,6 @@ private:
 };
 
 } // namespace platform
-} // namespace blink
+} // namespace inspector
 
 #endif // !defined(DispatcherBase_h)

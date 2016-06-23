@@ -46,8 +46,8 @@ static const char customObjectFormatterEnabled[] = "customObjectFormatterEnabled
 static const char runtimeEnabled[] = "runtimeEnabled";
 };
 
-using protocol::Runtime::ExceptionDetails;
-using protocol::Runtime::RemoteObject;
+using inspector::protocol::Runtime::ExceptionDetails;
+using inspector::protocol::Runtime::RemoteObject;
 
 static bool hasInternalError(ErrorString* errorString, bool hasError)
 {
@@ -56,7 +56,7 @@ static bool hasInternalError(ErrorString* errorString, bool hasError)
     return hasError;
 }
 
-V8RuntimeAgentImpl::V8RuntimeAgentImpl(V8InspectorSessionImpl* session, protocol::FrontendChannel* FrontendChannel, protocol::DictionaryValue* state)
+V8RuntimeAgentImpl::V8RuntimeAgentImpl(V8InspectorSessionImpl* session, inspector::protocol::FrontendChannel* FrontendChannel, inspector::protocol::DictionaryValue* state)
     : m_session(session)
     , m_state(state)
     , m_frontend(FrontendChannel)
@@ -136,7 +136,7 @@ void V8RuntimeAgentImpl::evaluate(
 void V8RuntimeAgentImpl::callFunctionOn(ErrorString* errorString,
     const String16& objectId,
     const String16& expression,
-    const Maybe<protocol::Array<protocol::Runtime::CallArgument>>& optionalArguments,
+    const Maybe<inspector::protocol::Array<inspector::protocol::Runtime::CallArgument>>& optionalArguments,
     const Maybe<bool>& doNotPauseOnExceptionsAndMuteConsole,
     const Maybe<bool>& returnByValue,
     const Maybe<bool>& generatePreview,
@@ -151,7 +151,7 @@ void V8RuntimeAgentImpl::callFunctionOn(ErrorString* errorString,
     std::unique_ptr<v8::Local<v8::Value>[]> argv = nullptr;
     int argc = 0;
     if (optionalArguments.isJust()) {
-        protocol::Array<protocol::Runtime::CallArgument>* arguments = optionalArguments.fromJust();
+        inspector::protocol::Array<inspector::protocol::Runtime::CallArgument>* arguments = optionalArguments.fromJust();
         argc = arguments->length();
         argv.reset(new v8::Local<v8::Value>[argc]);
         for (int i = 0; i < argc; ++i) {
@@ -197,11 +197,11 @@ void V8RuntimeAgentImpl::getProperties(
     const Maybe<bool>& ownProperties,
     const Maybe<bool>& accessorPropertiesOnly,
     const Maybe<bool>& generatePreview,
-    std::unique_ptr<protocol::Array<protocol::Runtime::PropertyDescriptor>>* result,
-    Maybe<protocol::Array<protocol::Runtime::InternalPropertyDescriptor>>* internalProperties,
+    std::unique_ptr<inspector::protocol::Array<inspector::protocol::Runtime::PropertyDescriptor>>* result,
+    Maybe<inspector::protocol::Array<inspector::protocol::Runtime::InternalPropertyDescriptor>>* internalProperties,
     Maybe<ExceptionDetails>* exceptionDetails)
 {
-    using protocol::Runtime::InternalPropertyDescriptor;
+    using inspector::protocol::Runtime::InternalPropertyDescriptor;
 
     InjectedScript::ObjectScope scope(errorString, m_debugger, m_session->contextGroupId(), objectId);
     if (!scope.initialize())
@@ -220,7 +220,7 @@ void V8RuntimeAgentImpl::getProperties(
     v8::Local<v8::Array> propertiesArray;
     if (hasInternalError(errorString, !v8::Debug::GetInternalProperties(m_debugger->isolate(), scope.object()).ToLocal(&propertiesArray)))
         return;
-    std::unique_ptr<protocol::Array<InternalPropertyDescriptor>> propertiesProtocolArray = protocol::Array<InternalPropertyDescriptor>::create();
+    std::unique_ptr<inspector::protocol::Array<InternalPropertyDescriptor>> propertiesProtocolArray = inspector::protocol::Array<InternalPropertyDescriptor>::create();
     for (uint32_t i = 0; i < propertiesArray->Length(); i += 2) {
         v8::Local<v8::Value> name;
         if (hasInternalError(errorString, !propertiesArray->Get(scope.context(), i).ToLocal(&name)) || !name->IsString())
@@ -393,7 +393,7 @@ void V8RuntimeAgentImpl::reportExecutionContextCreated(InspectedContext* context
     if (!m_enabled)
         return;
     context->setReported(true);
-    std::unique_ptr<protocol::Runtime::ExecutionContextDescription> description = protocol::Runtime::ExecutionContextDescription::create()
+    std::unique_ptr<inspector::protocol::Runtime::ExecutionContextDescription> description = inspector::protocol::Runtime::ExecutionContextDescription::create()
         .setId(context->contextId())
         .setIsDefault(context->isDefault())
         .setName(context->humanReadableName())
@@ -410,7 +410,7 @@ void V8RuntimeAgentImpl::reportExecutionContextDestroyed(InspectedContext* conte
     }
 }
 
-void V8RuntimeAgentImpl::inspect(std::unique_ptr<protocol::Runtime::RemoteObject> objectToInspect, std::unique_ptr<protocol::DictionaryValue> hints)
+void V8RuntimeAgentImpl::inspect(std::unique_ptr<inspector::protocol::Runtime::RemoteObject> objectToInspect, std::unique_ptr<inspector::protocol::DictionaryValue> hints)
 {
     if (m_enabled)
         m_frontend.inspectRequested(std::move(objectToInspect), std::move(hints));

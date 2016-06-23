@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 class String16;
@@ -86,6 +86,6 @@ public:
 };
 
 } // namespace platform
-} // namespace blink
+} // namespace inspector
 
 #endif // !defined(Maybe_h)

@@ -95,9 +95,9 @@ String16 createSearchRegexSource(const String16& text)
     return result.toString();
 }
 
-std::unique_ptr<protocol::Vector<unsigned>> lineEndings(const String16& text)
+std::unique_ptr<inspector::protocol::Vector<unsigned>> lineEndings(const String16& text)
 {
-    std::unique_ptr<protocol::Vector<unsigned>> result(new protocol::Vector<unsigned>());
+    std::unique_ptr<inspector::protocol::Vector<unsigned>> result(new inspector::protocol::Vector<unsigned>());
 
     unsigned start = 0;
     while (start < text.length()) {
@@ -113,13 +113,13 @@ std::unique_ptr<protocol::Vector<unsigned>> lineEndings(const String16& text)
     return result;
 }
 
-protocol::Vector<std::pair<int, String16>> scriptRegexpMatchesByLines(const V8Regex& regex, const String16& text)
+inspector::protocol::Vector<std::pair<int, String16>> scriptRegexpMatchesByLines(const V8Regex& regex, const String16& text)
 {
-    protocol::Vector<std::pair<int, String16>> result;
+    inspector::protocol::Vector<std::pair<int, String16>> result;
     if (text.isEmpty())
         return result;
 
-    std::unique_ptr<protocol::Vector<unsigned>> endings(lineEndings(text));
+    std::unique_ptr<inspector::protocol::Vector<unsigned>> endings(lineEndings(text));
     unsigned size = endings->size();
     unsigned start = 0;
     for (unsigned lineNumber = 0; lineNumber < size; ++lineNumber) {
@@ -137,9 +137,9 @@ protocol::Vector<std::pair<int, String16>> scriptRegexpMatchesByLines(const V8Re
     return result;
 }
 
-std::unique_ptr<protocol::Debugger::SearchMatch> buildObjectForSearchMatch(int lineNumber, const String16& lineContent)
+std::unique_ptr<inspector::protocol::Debugger::SearchMatch> buildObjectForSearchMatch(int lineNumber, const String16& lineContent)
 {
-    return protocol::Debugger::SearchMatch::create()
+    return inspector::protocol::Debugger::SearchMatch::create()
         .setLineNumber(lineNumber)
         .setLineContent(lineContent)
         .build();
@@ -195,11 +195,11 @@ String16 findSourceMapURL(const String16& content, bool multiline, bool* depreca
     return findMagicComment(content, "sourceMappingURL", multiline, deprecated);
 }
 
-std::unique_ptr<protocol::Array<protocol::Debugger::SearchMatch>> searchInTextByLines(V8InspectorSession* session, const String16& text, const String16& query, const bool caseSensitive, const bool isRegex)
+std::unique_ptr<inspector::protocol::Array<inspector::protocol::Debugger::SearchMatch>> searchInTextByLines(V8InspectorSession* session, const String16& text, const String16& query, const bool caseSensitive, const bool isRegex)
 {
-    std::unique_ptr<protocol::Array<protocol::Debugger::SearchMatch>> result = protocol::Array<protocol::Debugger::SearchMatch>::create();
+    std::unique_ptr<inspector::protocol::Array<inspector::protocol::Debugger::SearchMatch>> result = inspector::protocol::Array<inspector::protocol::Debugger::SearchMatch>::create();
     std::unique_ptr<V8Regex> regex = createSearchRegex(static_cast<V8InspectorSessionImpl*>(session)->debugger(), query, caseSensitive, isRegex);
-    protocol::Vector<std::pair<int, String16>> matches = scriptRegexpMatchesByLines(*regex.get(), text);
+    inspector::protocol::Vector<std::pair<int, String16>> matches = scriptRegexpMatchesByLines(*regex.get(), text);
 
     for (const auto& match : matches)
         result->addItem(buildObjectForSearchMatch(match.first, match.second));
@@ -209,7 +209,7 @@ std::unique_ptr<protocol::Array<protocol::Debugger::SearchMatch>> searchInTextBy
 
 } // namespace V8ContentSearchUtil
 
-std::unique_ptr<protocol::Value> toProtocolValue(v8::Local<v8::Context> context, v8::Local<v8::Value> value, int maxDepth)
+std::unique_ptr<inspector::protocol::Value> toProtocolValue(v8::Local<v8::Context> context, v8::Local<v8::Value> value, int maxDepth)
 {
     if (value.IsEmpty()) {
         NOTREACHED();
@@ -221,22 +221,22 @@ std::unique_ptr<protocol::Value> toProtocolValue(v8::Local<v8::Context> context,
     maxDepth--;
 
     if (value->IsNull() || value->IsUndefined())
-        return protocol::Value::null();
+        return inspector::protocol::Value::null();
     if (value->IsBoolean())
-        return protocol::FundamentalValue::create(value.As<v8::Boolean>()->Value());
+        return inspector::protocol::FundamentalValue::create(value.As<v8::Boolean>()->Value());
     if (value->IsNumber())
-        return protocol::FundamentalValue::create(value.As<v8::Number>()->Value());
+        return inspector::protocol::FundamentalValue::create(value.As<v8::Number>()->Value());
     if (value->IsString())
-        return protocol::StringValue::create(toProtocolString(value.As<v8::String>()));
+        return inspector::protocol::StringValue::create(toProtocolString(value.As<v8::String>()));
     if (value->IsArray()) {
         v8::Local<v8::Array> array = value.As<v8::Array>();
-        std::unique_ptr<protocol::ListValue> inspectorArray = protocol::ListValue::create();
+        std::unique_ptr<inspector::protocol::ListValue> inspectorArray = inspector::protocol::ListValue::create();
         uint32_t length = array->Length();
         for (uint32_t i = 0; i < length; i++) {
             v8::Local<v8::Value> value;
             if (!array->Get(context, i).ToLocal(&value))
                 return nullptr;
-            std::unique_ptr<protocol::Value> element = toProtocolValue(context, value, maxDepth);
+            std::unique_ptr<inspector::protocol::Value> element = toProtocolValue(context, value, maxDepth);
             if (!element)
                 return nullptr;
             inspectorArray->pushValue(std::move(element));
@@ -244,7 +244,7 @@ std::unique_ptr<protocol::Value> toProtocolValue(v8::Local<v8::Context> context,
         return std::move(inspectorArray);
     }
     if (value->IsObject()) {
-        std::unique_ptr<protocol::DictionaryValue> jsonObject = protocol::DictionaryValue::create();
+        std::unique_ptr<inspector::protocol::DictionaryValue> jsonObject = inspector::protocol::DictionaryValue::create();
         v8::Local<v8::Object> object = v8::Local<v8::Object>::Cast(value);
         v8::Local<v8::Array> propertyNames;
         if (!object->GetPropertyNames(context).ToLocal(&propertyNames))
@@ -266,7 +266,7 @@ std::unique_ptr<protocol::Value> toProtocolValue(v8::Local<v8::Context> context,
             v8::Local<v8::Value> property;
             if (!object->Get(context, name).ToLocal(&property))
                 return nullptr;
-            std::unique_ptr<protocol::Value> propertyValue = toProtocolValue(context, property, maxDepth);
+            std::unique_ptr<inspector::protocol::Value> propertyValue = toProtocolValue(context, property, maxDepth);
             if (!propertyValue)
                 return nullptr;
             jsonObject->setValue(toProtocolString(propertyName), std::move(propertyValue));

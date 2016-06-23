@@ -18,7 +18,7 @@ using LChar = unsigned char;
 using wstring = std::basic_string<UChar>;
 const size_t kNotFound = static_cast<size_t>(-1);
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 class String16 {
@@ -219,10 +219,10 @@ inline String16 operator+(const String16& a, const String16& b)
 }
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector
 
-using String16 = blink::protocol::String16;
-using String16Builder = blink::protocol::String16Builder;
+using String16 = inspector::protocol::String16;
+using String16Builder = inspector::protocol::String16Builder;
 
 
 namespace WTF {

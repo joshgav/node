@@ -13,7 +13,7 @@
 #include "wtf/text/StringToNumber.h"
 #include "wtf/text/WTFString.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 class PLATFORM_EXPORT String16 {
@@ -109,10 +109,10 @@ inline String16 operator+(const String16& a, const String16& b)
 }
 
 } // namespace protocol
-} // namespace blink
+} // namespace inspector
 
-using String16 = blink::protocol::String16;
-using String16Builder = blink::protocol::String16Builder;
+using String16 = inspector::protocol::String16;
+using String16Builder = inspector::protocol::String16Builder;
 
 namespace WTF {
 

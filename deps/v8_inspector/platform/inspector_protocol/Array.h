@@ -12,7 +12,7 @@
 #include "platform/inspector_protocol/ValueConversions.h"
 #include "platform/inspector_protocol/Values.h"
 
-namespace blink {
+namespace inspector {
 namespace protocol {
 
 template<typename T>
@@ -132,6 +132,6 @@ private:
 };
 
 } // namespace platform
-} // namespace blink
+} // namespace inspector
 
 #endif // !defined(Array_h)

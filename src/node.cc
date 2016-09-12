@@ -3845,6 +3845,7 @@ static void DispatchDebugMessagesAsyncCallback(uv_async_t* handle) {
 
 #ifdef __POSIX__
 static void EnableDebugSignalHandler(int signo) {
+  if (signo == SIGUSR2) use_inspector = true;
   uv_sem_post(&debug_semaphore);
 }
 
@@ -3923,9 +3924,11 @@ static int RegisterDebugSignalHandler() {
     return -err;
   }
   RegisterSignalHandler(SIGUSR1, EnableDebugSignalHandler);
+  RegisterSignalHandler(SIGUSR2, EnableDebugSignalHandler);
   // Unblock SIGUSR1.  A pending SIGUSR1 signal will now be delivered.
   sigemptyset(&sigmask);
   sigaddset(&sigmask, SIGUSR1);
+  sigaddset(&sigmask, SIGUSR2);
   CHECK_EQ(0, pthread_sigmask(SIG_UNBLOCK, &sigmask, nullptr));
   return 0;
 }

@@ -27,6 +27,7 @@
 #include "node_internals.h"
 #include "node_revert.h"
 #include "node_debug_options.h"
+#include "node_v8platform.h"
 
 #if defined HAVE_PERFCTR
 #include "node_counters.h"
@@ -241,14 +242,19 @@ static node::DebugOptions debug_options;
 
 static struct {
 #if NODE_USE_V8_PLATFORM
-  void Initialize(int thread_pool_size) {
-    platform_ = v8::platform::CreateDefaultPlatform(thread_pool_size);
+  void Initialize(int thread_pool_size, uv_loop_t* loop) {
+    platform_ = new node::platform::NodePlatform(thread_pool_size, loop);
+	// TODO: the following methods expect v8::Platform, how do we deal with that?
     V8::InitializePlatform(platform_);
     tracing::TraceEventHelper::SetCurrentPlatform(platform_);
   }
 
-  void PumpMessageLoop(Isolate* isolate) {
-    v8::platform::PumpMessageLoop(platform_, isolate);
+  void PumpMessageLoop() {
+    platform_->PumpMessageLoop();
+  }
+
+  void RunIdle(double budgetSeconds) {
+    platform_->RunIdle(budgetSeconds);
   }
 
   void Dispose() {
@@ -266,6 +272,7 @@ static struct {
   void StartTracingAgent() {
     CHECK(tracing_agent_ == nullptr);
     tracing_agent_ = new tracing::Agent();
+	// TODO: this method expects v8::Platform, how do we deal with that?
     tracing_agent_->Start(platform_, trace_enabled_categories);
   }
 
@@ -273,10 +280,10 @@ static struct {
     tracing_agent_->Stop();
   }
 
-  v8::Platform* platform_;
   tracing::Agent* tracing_agent_;
+  node::platform::NodePlatform* platform_;
 #else  // !NODE_USE_V8_PLATFORM
-  void Initialize(int thread_pool_size) {}
+  void Initialize(int thread_pool_size, uv_loop_t* loop) {}
   void PumpMessageLoop(Isolate* isolate) {}
   void Dispose() {}
   bool StartInspector(Environment *env, const char* script_path,
@@ -4481,11 +4488,11 @@ inline int Start(Isolate* isolate, IsolateData* isolate_data,
     SealHandleScope seal(isolate);
     bool more;
     do {
-      v8_platform.PumpMessageLoop(isolate);
+      v8_platform.PumpMessageLoop();
       more = uv_run(env.event_loop(), UV_RUN_ONCE);
 
       if (more == false) {
-        v8_platform.PumpMessageLoop(isolate);
+        v8_platform.PumpMessageLoop();
         EmitBeforeExit(&env);
 
         // Emit `beforeExit` if the loop became alive either after emitting
@@ -4591,7 +4598,7 @@ int Start(int argc, char** argv) {
   V8::SetEntropySource(crypto::EntropySource);
 #endif  // HAVE_OPENSSL
 
-  v8_platform.Initialize(v8_thread_pool_size);
+  v8_platform.Initialize(v8_thread_pool_size, uv_default_loop());
   // Enable tracing when argv has --trace-events-enabled.
   if (trace_enabled) {
     fprintf(stderr, "Warning: Trace event is an experimental feature "
